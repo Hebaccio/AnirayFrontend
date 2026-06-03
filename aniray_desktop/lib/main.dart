@@ -1,4 +1,4 @@
-import 'package:aniray_desktop/screens/my_home_page.dart';
+import 'package:aniray_desktop/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 //import 'package:aniray_desktop/screens/login_screen.dart';
 
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Color.fromARGB(255, 93, 12, 94)),
       ),
-      home: const MyHomePage(
+      home: const LoginScreen(
         key: ValueKey("login_page"),
         title: 'AniRay (Desktop)',
       ),
