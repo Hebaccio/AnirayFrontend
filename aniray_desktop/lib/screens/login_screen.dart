@@ -4,6 +4,7 @@ import 'package:aniray_desktop/requests/auth_requests/login_dto.dart';
 import 'package:aniray_desktop/screens/2fa_screen.dart';
 import 'package:aniray_desktop/screens/my_home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:aniray_desktop/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.title});
@@ -27,10 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$/%^&*(),.?":{}|<>]).{6,}$',
   );
-
-  static const Color primaryColor = Color(0xFF0B1622);
-  static const Color secondaryColor = Color(0xFF24344D);
-  static const Color tertiaryColor = Color(0xFF395580);
 
   bool _validate() {
     final email = _emailController.text.trim();
@@ -68,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       LoginDto.email = _emailController.text;
       LoginDto.password = _passwordController.text;
 
-      await provider.post();
+      await provider.loginForStaff();
 
       if (AuthResult.twoFactorRequired == true) {
         Navigator.of(
@@ -83,22 +80,25 @@ class _LoginScreenState extends State<LoginScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: secondaryColor,
+          backgroundColor: AppColors.backgroundTertiary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text(
             "Login Error",
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textPrimary),
           ),
           content: Text(
             e.toString().replaceFirst("Exception: ", ""),
-            style: const TextStyle(color: Colors.white70),
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("OK", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "OK",
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
             ),
           ],
         ),
@@ -113,14 +113,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: AppColors.backgroundPrimary,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
             child: Card(
-              color: secondaryColor,
+              color: AppColors.backgroundSecondary,
               elevation: 12,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text(
                       "Log-In",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
@@ -145,14 +145,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     TextField(
                       controller: _emailController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: "Email",
-                        labelStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                        labelStyle: TextStyle(color: AppColors.textPrimary),
                         filled: true,
-                        fillColor: primaryColor.withValues(alpha: 0.5),
+                        fillColor: AppColors.backgroundTertiary,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
@@ -172,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _emailError!,
                             textAlign: TextAlign.left,
                             style: const TextStyle(
-                              color: Colors.redAccent,
+                              color: AppColors.textError,
                               fontSize: 12,
                             ),
                           ),
@@ -184,18 +182,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: "Password",
-                        labelStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                        labelStyle: TextStyle(color: AppColors.textPrimary),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: Colors.white70,
+                            color: AppColors.textSecondary,
                           ),
 
                           onPressed: () {
@@ -205,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         filled: true,
-                        fillColor: primaryColor.withValues(alpha: 0.5),
+                        fillColor: AppColors.backgroundTertiary,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
@@ -225,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _passwordError!,
                             textAlign: TextAlign.left,
                             style: const TextStyle(
-                              color: Colors.redAccent,
+                              color: AppColors.textError,
                               fontSize: 12,
                             ),
                           ),
@@ -240,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {},
                           child: const Text(
                             "Forgot Password?",
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(color: AppColors.textSecondary),
                           ),
                         ),
                       ],
@@ -254,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: tertiaryColor,
+                          backgroundColor: AppColors.backgroundTertiary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -268,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                                      AppColors.textPrimary,
                                     ),
                                   ),
                                 ),
