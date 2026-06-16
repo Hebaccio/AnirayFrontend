@@ -1,8 +1,8 @@
-import 'package:aniray_desktop/providers/login_provider.dart';
+import 'package:aniray_desktop/providers/auth_provider.dart';
 import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
 import 'package:aniray_desktop/requests/auth_requests/verify_2fa_dto.dart';
-import 'package:aniray_desktop/screens/login_screen.dart';
-import 'package:aniray_desktop/screens/my_home_page.dart';
+import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
+import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
 
@@ -26,16 +26,15 @@ class _TwoFAScreenState extends State<TwoFAScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     try {
-      LoginProvider provider = LoginProvider();
+      AuthProvider provider = AuthProvider();
       Verify2FADto.userId = AuthResult.userId;
       Verify2FADto.code = _codeController.text;
 
       await provider.verify2FA();
 
       if (AuthResult.accessToken != null) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => MyHomePage(title: "testttt")),
-          (route) => false,
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const MainSidebarWidget()),
         );
       } else {
         _handleWrongCode();
@@ -100,6 +99,14 @@ class _TwoFAScreenState extends State<TwoFAScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _resend2FA() async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    AuthProvider provider = AuthProvider();
+    await provider.resend2FA();
+    counter = 0;
   }
 
   @override
@@ -184,7 +191,7 @@ class _TwoFAScreenState extends State<TwoFAScreen> {
                     Align(
                       alignment: Alignment.center,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: _resend2FA,
                         child: const Text(
                           "Resend code",
                           style: TextStyle(color: AppColors.textSecondary),

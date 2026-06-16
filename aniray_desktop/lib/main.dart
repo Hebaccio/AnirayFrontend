@@ -1,6 +1,5 @@
-import 'package:aniray_desktop/screens/login_screen.dart';
+import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
-//import 'package:aniray_desktop/screens/login_screen.dart';
 
 //“Start the Flutter widget tree using MyApp as the root widget.”
 void main() {
@@ -17,10 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Color.fromARGB(255, 93, 12, 94)),
       ),
-      home: const LoginScreen(
-        key: ValueKey("login_page"),
-        title: 'AniRay (Desktop)',
-      ),
+      home: MainSidebarWidget(key: ValueKey("main")),
     );
   }
 }

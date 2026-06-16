@@ -2,6 +2,8 @@ class AuthResult {
   static bool? twoFactorRequired;
   static int? userId;
   static String? accessToken;
+  static String? accessTokenForTesting =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkJvc3MiLCJleHAiOjE3ODU1ODg0ODEsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlDbGllbnQifQ.yr6K0K0hw5rXt614Ah61NhBfBc3Slg_GXDzaI7tzII8";
   static String? refreshToken;
   static DateTime? expiresAt;
 }

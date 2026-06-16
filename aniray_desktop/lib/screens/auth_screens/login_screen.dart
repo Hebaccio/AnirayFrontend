@@ -1,8 +1,8 @@
-import 'package:aniray_desktop/providers/login_provider.dart';
+import 'package:aniray_desktop/providers/auth_provider.dart';
 import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
 import 'package:aniray_desktop/requests/auth_requests/login_dto.dart';
-import 'package:aniray_desktop/screens/2fa_screen.dart';
-import 'package:aniray_desktop/screens/my_home_page.dart';
+import 'package:aniray_desktop/screens/auth_screens/2fa_screen.dart';
+import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
 
@@ -18,8 +18,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
-  TextEditingController _emailController = new TextEditingController();
-  TextEditingController _passwordController = new TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _showValidationErrors = false;
   String? _emailError;
   String? _passwordError;
@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     await Future.delayed(const Duration(seconds: 1));
     try {
-      LoginProvider provider = LoginProvider();
+      AuthProvider provider = AuthProvider();
       LoginDto.email = _emailController.text;
       LoginDto.password = _passwordController.text;
 
@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).push(MaterialPageRoute(builder: (context) => TwoFAScreen()));
       } else {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => MyHomePage(title: "testttt")),
+          MaterialPageRoute(builder: (context) => const MainSidebarWidget()),
         );
       }
     } catch (e) {
