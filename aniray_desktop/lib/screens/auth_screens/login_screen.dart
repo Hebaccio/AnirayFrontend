@@ -8,7 +8,6 @@ import 'package:aniray_desktop/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.title});
-
   final String title;
 
   @override
