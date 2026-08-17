@@ -1,11 +1,12 @@
 class AuthResult {
   static bool? twoFactorRequired;
   static int? userId;
-  static String? accessToken;
-  static String? accessTokenForTesting =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkJvc3MiLCJleHAiOjE3ODU1ODg0ODEsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlDbGllbnQifQ.yr6K0K0hw5rXt614Ah61NhBfBc3Slg_GXDzaI7tzII8";
+  static String? accessToken; // = AuthResult2.accessTokenForUsers;
   static String? refreshToken;
   static DateTime? expiresAt;
+}
+
+class AuthResult2 {
   static String? accessTokenForEmployees =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaGFtemFoZWJpYm92aWMwMUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJCb3NzIiwiZXhwIjoxNzg3NjYyODMyLCJpc3MiOiJNeUFwaSIsImF1ZCI6Ik15QXBpQ2xpZW50In0.yRnBGoslu8KV71D8-Q1x5Cfs1wkkOcADBCj4ek1jIB4";
   static String? accessTokenForUsers =

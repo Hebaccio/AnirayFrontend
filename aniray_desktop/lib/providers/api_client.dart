@@ -1,10 +1,11 @@
+import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
 import 'package:http/http.dart' as http;
+import 'api_response.dart';
 
 class ApiClient {
   final http.Client _client;
-  final String? accessTokenForEmployees;
 
-  ApiClient(this._client, {this.accessTokenForEmployees});
+  ApiClient(this._client);
 
   Map<String, String> _getHeaders({Map<String, String>? headers}) {
     final result = <String, String>{
@@ -12,69 +13,98 @@ class ApiClient {
       ...?headers,
     };
 
-    if (accessTokenForEmployees != null &&
-        accessTokenForEmployees!.isNotEmpty) {
-      result['Authorization'] = 'Bearer $accessTokenForEmployees';
+    final token = AuthResult.accessToken;
+
+    if (token != null && token.isNotEmpty) {
+      result['Authorization'] = 'Bearer $token';
     }
 
     return result;
   }
 
-  Future<http.Response> get(
+  Future<ApiResponse<String>> get(
     String url, {
     Map<String, String>? headers,
     Map<String, String>? queryParameters,
-  }) {
+  }) async {
     final uri = Uri.parse(url).replace(queryParameters: queryParameters);
 
-    return _client.get(uri, headers: _getHeaders(headers: headers));
+    final response = await _client.get(
+      uri,
+      headers: _getHeaders(headers: headers),
+    );
+
+    return ApiResponse<String>(
+      statusCode: response.statusCode,
+      body: response.body,
+    );
   }
 
-  Future<http.Response> post(
+  Future<ApiResponse<String>> post(
     String url, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    return _client.post(
+  }) async {
+    final response = await _client.post(
       Uri.parse(url),
       headers: _getHeaders(headers: headers),
       body: body,
     );
+
+    return ApiResponse<String>(
+      statusCode: response.statusCode,
+      body: response.body,
+    );
   }
 
-  Future<http.Response> put(
+  Future<ApiResponse<String>> put(
     String url, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    return _client.put(
+  }) async {
+    final response = await _client.put(
       Uri.parse(url),
       headers: _getHeaders(headers: headers),
       body: body,
     );
+
+    return ApiResponse<String>(
+      statusCode: response.statusCode,
+      body: response.body,
+    );
   }
 
-  Future<http.Response> patch(
+  Future<ApiResponse<String>> patch(
     String url, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    return _client.patch(
+  }) async {
+    final response = await _client.patch(
       Uri.parse(url),
       headers: _getHeaders(headers: headers),
       body: body,
     );
+
+    return ApiResponse<String>(
+      statusCode: response.statusCode,
+      body: response.body,
+    );
   }
 
-  Future<http.Response> delete(
+  Future<ApiResponse<String>> delete(
     String url, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    return _client.delete(
+  }) async {
+    final response = await _client.delete(
       Uri.parse(url),
       headers: _getHeaders(headers: headers),
       body: body,
+    );
+
+    return ApiResponse<String>(
+      statusCode: response.statusCode,
+      body: response.body,
     );
   }
 }

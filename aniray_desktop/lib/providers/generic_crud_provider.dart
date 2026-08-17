@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:aniray_desktop/providers/api_response.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:aniray_desktop/providers/api_client.dart';
-import 'package:aniray_desktop/providers/api_exception.dart';
-import 'package:aniray_desktop/requests/new_paged_result.dart';
+import 'package:aniray_desktop/providers/api_result.dart';
+import 'package:aniray_desktop/requests/paged_result.dart';
 
 import '../providers/base_provider.dart';
 
@@ -44,7 +48,9 @@ class GenericCrudProvider<
     required this.updateEmployeeToJson,
   }) : super(endpoint);
 
-  Future<TModelUser> entityGetByIdForUsers(int id) {
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  Future<ApiResult<TModelUser>> entityGetByIdForUsers(int? id) {
     return _getById(
       id: id,
       path: '/EntityGetById/ForUsers',
@@ -52,7 +58,7 @@ class GenericCrudProvider<
     );
   }
 
-  Future<TModelEmployee> entityGetByIdForEmployees(int id) {
+  Future<ApiResult<TModelEmployee>> entityGetByIdForEmployees(int id) {
     return _getById(
       id: id,
       path: '/EntityGetById/ForEmployees',
@@ -60,7 +66,24 @@ class GenericCrudProvider<
     );
   }
 
-  Future<PagedResult<TModelUser>> getPagedEntityForUsers(TSearchUser search) {
+  Future<ApiResult<T>> _getById<T>({
+    int? id,
+    required String path,
+    required FromJson<T> fromJson,
+  }) {
+    final requestUrl = id == null ? '$url$path' : '$url$path/$id';
+
+    return _execute<T>(
+      request: () => apiClient.get(requestUrl),
+      fromJson: fromJson,
+    );
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  Future<ApiResult<PagedResult<TModelUser>>> getPagedEntityForUsers(
+    TSearchUser search,
+  ) {
     return _getPaged(
       search: search,
       path: '/GetPagedEntity/ForUsers',
@@ -69,7 +92,7 @@ class GenericCrudProvider<
     );
   }
 
-  Future<PagedResult<TModelEmployee>> getPagedEntityForEmployees(
+  Future<ApiResult<PagedResult<TModelEmployee>>> getPagedEntityForEmployees(
     TSearchEmployee search,
   ) {
     return _getPaged(
@@ -80,7 +103,30 @@ class GenericCrudProvider<
     );
   }
 
-  Future<TModelUser> insertEntityForUsers(TInsertUser request) {
+  Future<ApiResult<PagedResult<TModel>>> _getPaged<TSearch, TModel>({
+    required TSearch search,
+    required String path,
+    required ToJson<TSearch> toJson,
+    required FromJson<TModel> fromJson,
+  }) {
+    final queryJson = toJson(search);
+    final queryParameters = _toQueryParameters(queryJson);
+
+    final requestUrl = '$url$path';
+
+    return _execute<PagedResult<TModel>>(
+      request: () =>
+          apiClient.get(requestUrl, queryParameters: queryParameters),
+      fromJson: (json) => PagedResult<TModel>.fromJson(
+        json,
+        (item) => fromJson(item as Map<String, dynamic>),
+      ),
+    );
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  Future<ApiResult<TModelUser>> insertEntityForUsers(TInsertUser request) {
     return _insert(
       request: request,
       path: '/InsertEntity/ForUsers',
@@ -89,7 +135,9 @@ class GenericCrudProvider<
     );
   }
 
-  Future<TModelEmployee> insertEntityForEmployees(TInsertEmployee request) {
+  Future<ApiResult<TModelEmployee>> insertEntityForEmployees(
+    TInsertEmployee request,
+  ) {
     return _insert(
       request: request,
       path: '/InsertEntity/ForEmployees',
@@ -98,7 +146,30 @@ class GenericCrudProvider<
     );
   }
 
-  Future<TModelUser> updateEntityForUsers(int id, TUpdateUser request) {
+  Future<ApiResult<TModel>> _insert<TInsert, TModel>({
+    required TInsert request,
+    required String path,
+    required ToJson<TInsert> toJson,
+    required FromJson<TModel> fromJson,
+  }) {
+    final requestUrl = '$url$path';
+
+    return _execute<TModel>(
+      request: () => apiClient.post(
+        requestUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(toJson(request)),
+      ),
+      fromJson: fromJson,
+    );
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  Future<ApiResult<TModelUser>> updateEntityForUsers(
+    int? id,
+    TUpdateUser request,
+  ) {
     return _update(
       id: id,
       request: request,
@@ -108,7 +179,7 @@ class GenericCrudProvider<
     );
   }
 
-  Future<TModelEmployee> updateEntityForEmployees(
+  Future<ApiResult<TModelEmployee>> updateEntityForEmployees(
     int id,
     TUpdateEmployee request,
   ) {
@@ -121,104 +192,49 @@ class GenericCrudProvider<
     );
   }
 
-  Future<T> _getById<T>({
-    required int id,
-    required String path,
-    required FromJson<T> fromJson,
-  }) async {
-    final requestUrl = '$url$path/$id';
-
-    final response = await apiClient.get(requestUrl);
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      return fromJson(data as Map<String, dynamic>);
-    }
-
-    throw _createApiException(response.statusCode, data);
-  }
-
-  Future<PagedResult<TModel>> _getPaged<TSearch, TModel>({
-    required TSearch search,
-    required String path,
-    required ToJson<TSearch> toJson,
-    required FromJson<TModel> fromJson,
-  }) async {
-    final queryJson = toJson(search);
-
-    final queryParameters = _toQueryParameters(queryJson);
-
-    final requestUrl = '$url$path';
-
-    final response = await apiClient.get(
-      requestUrl,
-      queryParameters: queryParameters,
-    );
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      final json = data as Map<String, dynamic>;
-
-      return PagedResult<TModel>.fromJson(
-        json,
-        (item) => fromJson(item as Map<String, dynamic>),
-      );
-    }
-
-    throw _createApiException(response.statusCode, data);
-  }
-
-  Future<TModel> _insert<TInsert, TModel>({
-    required TInsert request,
-    required String path,
-    required ToJson<TInsert> toJson,
-    required FromJson<TModel> fromJson,
-  }) async {
-    final requestUrl = '$url$path';
-
-    final response = await apiClient.post(
-      requestUrl,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(toJson(request)),
-    );
-
-    print('STATUS: ${response.statusCode}');
-    print('BODY: "${response.body}"');
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      return fromJson(data as Map<String, dynamic>);
-    }
-
-    throw _createApiException(response.statusCode, data);
-  }
-
-  Future<TModel> _update<TUpdate, TModel>({
-    required int id,
+  Future<ApiResult<TModel>> _update<TUpdate, TModel>({
+    int? id,
     required TUpdate request,
     required String path,
     required ToJson<TUpdate> toJson,
     required FromJson<TModel> fromJson,
-  }) async {
-    final requestUrl = '$url$path/$id';
+  }) {
+    final requestUrl = id == null ? '$url$path' : '$url$path/$id';
 
-    final response = await apiClient.patch(
-      requestUrl,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(toJson(request)),
+    return _execute<TModel>(
+      request: () => apiClient.patch(
+        requestUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(toJson(request)),
+      ),
+      fromJson: fromJson,
     );
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      return fromJson(data as Map<String, dynamic>);
-    }
-
-    throw _createApiException(response.statusCode, data);
   }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  Future<ApiResult<TModelUser>> softDelete(int? id) {
+    return _softDelete(
+      id: id,
+      path: '/SoftDelete',
+      fromJson: modelUserFromJson,
+    );
+  }
+
+  Future<ApiResult<T>> _softDelete<T>({
+    int? id,
+    required String path,
+    required FromJson<T> fromJson,
+  }) {
+    final requestUrl = id == null ? '$url$path' : '$url$path/$id';
+
+    return _execute<T>(
+      request: () => apiClient.delete(requestUrl),
+      fromJson: fromJson,
+    );
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   Map<String, String> _toQueryParameters(Map<String, dynamic> json) {
     return Map.fromEntries(
@@ -228,13 +244,178 @@ class GenericCrudProvider<
     );
   }
 
-  ApiException _createApiException(int statusCode, dynamic data) {
-    String message = 'Unknown API error.';
-
-    if (data is Map<String, dynamic> && data['message'] is String) {
-      message = data['message'] as String;
+  dynamic _decodeResponseBody(String body) {
+    if (body.isEmpty) {
+      return null;
     }
 
-    return ApiException(statusCode: statusCode, message: message);
+    return jsonDecode(body);
+  }
+
+  ApiResult<T> _createApiResult<T>({
+    required int statusCode,
+    required dynamic data,
+    required FromJson<T> fromJson,
+  }) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message'] as String?;
+
+      if (data.length == 1 && message != null) {
+        return ApiResult<T>(
+          statusCode: statusCode,
+          data: null,
+          message: message,
+        );
+      }
+
+      return ApiResult<T>(
+        statusCode: statusCode,
+        data: fromJson(data),
+        message: null,
+      );
+    }
+
+    // No JSON object / empty / unexpected response.
+    return ApiResult<T>(
+      statusCode: statusCode,
+      data: null,
+      message: _messageForStatusCode(statusCode),
+    );
+  }
+
+  Future<ApiResult<T>> _execute<T>({
+    required Future<ApiResponse<String>> Function() request,
+    required FromJson<T> fromJson,
+  }) async {
+    try {
+      final response = await request();
+
+      final data = _decodeResponseBody(response.body);
+
+      return _createApiResult<T>(
+        statusCode: response.statusCode,
+        data: data,
+        fromJson: fromJson,
+      );
+    } on TimeoutException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'The request timed out. Please try again.',
+      );
+    } on SocketException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'Unable to connect to the server.',
+      );
+    } on FormatException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'The server returned an invalid response.',
+      );
+    } catch (e) {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'An unexpected error occurred.',
+      );
+    }
+  }
+
+  String _messageForStatusCode(int statusCode) {
+    switch (statusCode) {
+      // 2xx — Success
+      case 200:
+        return 'Request completed successfully.';
+      case 201:
+        return 'Resource created successfully.';
+      case 202:
+        return 'Request accepted for processing.';
+      case 204:
+        return 'Request completed successfully with no content.';
+
+      // 3xx — Redirection
+      case 300:
+        return 'Multiple possible responses were found.';
+      case 301:
+        return 'The requested resource has been permanently moved.';
+      case 302:
+        return 'The requested resource has been temporarily moved.';
+      case 303:
+        return 'See another resource for the requested result.';
+      case 304:
+        return 'The resource has not been modified.';
+      case 307:
+        return 'The request should be repeated at another location.';
+      case 308:
+        return 'The resource has been permanently moved.';
+
+      // 4xx — Client errors
+      case 400:
+        return 'Bad request.';
+      case 401:
+        return 'Unauthorized to perform this action.';
+      case 402:
+        return 'Payment is required.';
+      case 403:
+        return 'You do not have permission to perform this action.';
+      case 404:
+        return 'The requested resource was not found.';
+      case 405:
+        return 'The requested action is not allowed.';
+      case 406:
+        return 'The requested response format is not acceptable.';
+      case 407:
+        return 'Proxy authentication is required.';
+      case 408:
+        return 'The request timed out.';
+      case 409:
+        return 'The request conflicts with the current state of the resource.';
+      case 410:
+        return 'The requested resource is no longer available.';
+      case 411:
+        return 'The request is missing required information.';
+      case 412:
+        return 'The request conditions were not met.';
+      case 413:
+        return 'The request is too large.';
+      case 414:
+        return 'The requested URL is too long.';
+      case 415:
+        return 'The request format is not supported.';
+      case 416:
+        return 'The requested range cannot be satisfied.';
+      case 417:
+        return 'The request could not be completed as expected.';
+      case 418:
+        return "The server cannot fulfill the request.";
+      case 422:
+        return 'The request contains invalid data.';
+      case 423:
+        return 'The requested resource is locked.';
+      case 424:
+        return 'The request failed because a related request failed.';
+      case 425:
+        return 'The request cannot be processed yet.';
+      case 426:
+        return 'A protocol upgrade is required.';
+      case 428:
+        return 'The request requires additional conditions.';
+      case 429:
+        return 'Too many requests. Please try again later.';
+      case 431:
+        return 'The request headers are too large.';
+      case 451:
+        return 'The requested resource is unavailable for legal reasons.';
+
+      // 4xx — Client errors
+      case 500:
+        return 'Sever Side Error, check Logs please';
+      // Fallback
+      default:
+        return 'Request failed with status code $statusCode.';
+    }
   }
 }

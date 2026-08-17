@@ -1,11 +1,5 @@
-import 'package:aniray_desktop/models/bluray/bluray_ire.dart';
-import 'package:aniray_desktop/models/bluray/bluray_iru.dart';
-import 'package:aniray_desktop/models/bluray/bluray_me.dart';
-import 'package:aniray_desktop/models/bluray/bluray_mu.dart';
-import 'package:aniray_desktop/models/bluray/bluray_soe.dart';
-import 'package:aniray_desktop/models/bluray/bluray_sou.dart';
-import 'package:aniray_desktop/models/bluray/bluray_ure.dart';
-import 'package:aniray_desktop/models/bluray/bluray_uru.dart';
+import 'package:aniray_desktop/models/bluray/bluray_models.dart';
+import 'package:http/http.dart' as http;
 import 'package:aniray_desktop/providers/api_client.dart';
 import 'package:aniray_desktop/providers/generic_crud_provider.dart';
 
@@ -21,10 +15,10 @@ class BluRayProvider
           BluRayURU,
           BluRayURE
         > {
-  BluRayProvider({required ApiClient apiClient})
+  BluRayProvider()
     : super(
         endpoint: 'BluRay',
-        apiClient: apiClient,
+        apiClient: ApiClient(http.Client()),
 
         // Models
         modelUserFromJson: BluRayMU.fromJson,

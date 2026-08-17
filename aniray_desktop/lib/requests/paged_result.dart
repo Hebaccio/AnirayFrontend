@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'new_paged_result.g.dart';
+part 'paged_result.g.dart';
 
 @JsonSerializable(genericArgumentFactories: true)
 class PagedResult<T> {
