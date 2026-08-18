@@ -1,18 +1,18 @@
 /*
 
-So
+Next Up:
 
-1 - Convert Models from backend to Models from Frontend (1:1)
-2 - Make Providers for all Entities
-3 - Work on all Screens
-4 - Work on Auth & Order/Payment Stripe
+Inventory Screen:
+    Sort the scroll bug
+    Add Movie Button
+
+Movie Details Screen:
+    Description "<br>" problems etc.
+    Add functionalities on the screen
 
 */
 
 
 /*
-
-
-
 
 */

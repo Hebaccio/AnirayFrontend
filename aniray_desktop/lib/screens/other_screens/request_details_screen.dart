@@ -4,9 +4,10 @@ import 'package:aniray_desktop/models/request/request_models.dart';
 import 'package:aniray_desktop/providers/api_result.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
-  const RequestDetailsScreen({super.key, required this.requestId});
+  const RequestDetailsScreen({super.key, required this.requestId, this.onBack});
 
   final int requestId;
+  final VoidCallback? onBack;
 
   @override
   State<RequestDetailsScreen> createState() => _RequestDetailsScreenState();
@@ -15,15 +16,25 @@ class RequestDetailsScreen extends StatefulWidget {
 class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   final RequestProvider _requestProvider = RequestProvider();
 
+  final TextEditingController _responseController = TextEditingController();
+
   RequestME? _request;
 
   bool _isLoading = true;
+  bool _isSendingResponse = false;
+
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _loadRequest();
+  }
+
+  @override
+  void dispose() {
+    _responseController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRequest() async {
@@ -53,12 +64,59 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
     }
   }
 
+  bool _canReply(RequestME request) {
+    return request.response == null || request.response!.trim().isEmpty;
+  }
+
+  Future<void> _sendResponse() async {
+    final String response = _responseController.text.trim();
+
+    if (response.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a response.')));
+
+      return;
+    }
+
+    setState(() {
+      _isSendingResponse = true;
+    });
+
+    final ApiResult<RequestME> result = await _requestProvider
+        .updateEntityForEmployees(
+          widget.requestId,
+          RequestURE(response: response),
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result.data != null) {
+      setState(() {
+        _request = result.data;
+        _responseController.clear();
+        _isSendingResponse = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Response sent successfully.')),
+      );
+    } else {
+      setState(() {
+        _isSendingResponse = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Failed to send response.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF08111F),
-      child: SafeArea(child: _buildContent()),
-    );
+    return Container(color: const Color(0xFF08111F), child: _buildContent());
   }
 
   Widget _buildContent() {
@@ -85,9 +143,10 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildRequestDetails(RequestME request) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(45, 30, 45, 40),
-      child: Center(
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(45, 30, 45, 40),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 950),
           child: Column(
@@ -95,9 +154,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             children: [
               _buildHeader(),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               _buildRequestCard(request),
+
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -106,27 +167,31 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 25),
-        ),
-
-        const SizedBox(width: 8),
-
-        const Text(
-          'Request Details',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 26,
-            fontWeight: FontWeight.w400,
+    return SizedBox(
+      height: 40,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: widget.onBack,
+            tooltip: 'Back',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 25),
           ),
-        ),
-      ],
+
+          const SizedBox(width: 8),
+
+          const Text(
+            'Request Details',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -244,8 +309,83 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
           const SizedBox(height: 25),
 
           _buildReadStatus(request),
+
+          if (_canReply(request)) ...[
+            const SizedBox(height: 28),
+
+            _buildResponseInput(),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildResponseInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Reply',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        TextField(
+          controller: _responseController,
+          minLines: 4,
+          maxLines: 8,
+          enabled: !_isSendingResponse,
+          style: const TextStyle(
+            color: Color(0xFFE1E5EA),
+            fontSize: 15,
+            height: 1.6,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Write your response...',
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 15),
+            filled: true,
+            fillColor: const Color(0xFF08111F),
+            contentPadding: const EdgeInsets.all(18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(color: Colors.white24),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        ElevatedButton.icon(
+          onPressed: _isSendingResponse ? null : _sendResponse,
+          icon: _isSendingResponse
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.send_outlined),
+          label: Text(_isSendingResponse ? 'Sending...' : 'Send Reply'),
+        ),
+      ],
     );
   }
 

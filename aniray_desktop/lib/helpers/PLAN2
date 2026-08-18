@@ -1,3 +1,4 @@
+/*
 import 'dart:async';
 
 import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
@@ -29,7 +30,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
   // CONSTANTS
   // ---------------------------------------------------------------------------
 
-  static const int _pageSize = 36;
+  static const int _pageSize = 40;
 
   static const double _movieCardWidth = 150;
   static const double _movieCardHeight = 250;
@@ -270,42 +271,34 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
     return Container(
       color: AppColors.backgroundPrimary,
       child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 30),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Column(
-                  children: [
-                    // -----------------------------------------------------------------
-                    // TOP BAR
-                    // -----------------------------------------------------------------
-                    _buildTopBar(),
+        child: Column(
+          children: [
+            // -------------------------------------------------------------------
+            // TOP BAR
+            // -------------------------------------------------------------------
+            _buildTopBar(),
 
-                    const SizedBox(height: 30),
+            const SizedBox(height: 30),
 
-                    // -----------------------------------------------------------------
-                    // CONTENT
-                    // -----------------------------------------------------------------
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildMovieContent(),
-                    ),
-
-                    // -----------------------------------------------------------------
-                    // PAGINATION
-                    // -----------------------------------------------------------------
-                    if (_shouldShowPagination()) ...[
-                      const SizedBox(height: 25),
-                      _buildPagination(),
-                    ],
-                  ],
-                ),
+            // -------------------------------------------------------------------
+            // CONTENT
+            // -------------------------------------------------------------------
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 30),
+                child: _buildMovieContent(),
               ),
-            );
-          },
+            ),
+
+            // -------------------------------------------------------------------
+            // PAGINATION
+            // -------------------------------------------------------------------
+            if (_shouldShowPagination()) ...[
+              const SizedBox(height: 25),
+              _buildPagination(),
+            ],
+          ],
         ),
       ),
     );
@@ -1944,3 +1937,5 @@ class _MovieFilterDialogState extends State<MovieFilterDialog> {
     );
   }
 }
+
+*/

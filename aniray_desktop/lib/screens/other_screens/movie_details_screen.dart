@@ -24,7 +24,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   String? _offersError;
 
   static const int _page = 0;
-  static const int _pageSize = 10;
+  static const int _pageSize = 1000;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
 
     final search = BluRaySOE(
       page: _page,
-      pageSize: 1000,
+      pageSize: _pageSize,
       movieId: widget.movie.id,
     );
 
@@ -70,24 +70,36 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     final movie = widget.movie;
 
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       color: const Color(0xFF08111F),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(28, 14, 28, 36),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBackButton(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(28, 14, 28, 36),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 50,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    _buildBackButton(),
 
-              const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-              _buildMovieHeader(movie),
+                    _buildMovieHeader(movie),
 
-              const SizedBox(height: 42),
+                    const SizedBox(height: 42),
 
-              _buildBottomContent(movie),
-            ],
-          ),
+                    _buildBottomContent(movie),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

@@ -27,7 +27,10 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
       onMovieSelected: openMovieDetails,
     ),
 
-    const DashboardRequestsScreen(title: "Requests"),
+    DashboardRequestsScreen(
+      title: "Requests",
+      onRequestSelected: openRequestDetails,
+    ),
 
     const DashboardUsersScreen(title: "Users"),
 
@@ -47,6 +50,7 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF08111F),
       body: Row(
         children: [
           _buildSidebar(),
@@ -63,16 +67,27 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
 
   void openMovieDetails(MovieME movie) {
     setState(() {
-      _detailsPage = MovieDetailsScreen(movie: movie);
+      _detailsPage = MovieDetailsScreen(
+        movie: movie,
+        onBack: _closeDetailsPage,
+      );
     });
   }
 
-  void openRequestDetails(dynamic request) {
+  void openRequestDetails(int requestId) {
     setState(() {
-      _detailsPage = RequestDetailsScreen(requestId: request);
+      _detailsPage = RequestDetailsScreen(
+        requestId: requestId,
+        onBack: _closeDetailsPage,
+      );
     });
   }
 
+  void _closeDetailsPage() {
+    setState(() {
+      _detailsPage = null;
+    });
+  }
   // ---------------------------------------------------------------------------
   // SIDEBAR
   // ---------------------------------------------------------------------------
