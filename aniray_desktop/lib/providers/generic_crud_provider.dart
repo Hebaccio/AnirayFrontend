@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:aniray_desktop/providers/api_response.dart';
-import 'package:http/http.dart' as http;
 
+import 'package:aniray_desktop/providers/api_response.dart';
 import 'package:aniray_desktop/providers/api_client.dart';
 import 'package:aniray_desktop/providers/api_result.dart';
 import 'package:aniray_desktop/requests/paged_result.dart';
@@ -28,10 +27,13 @@ class GenericCrudProvider<
 
   final FromJson<TModelUser> modelUserFromJson;
   final FromJson<TModelEmployee> modelEmployeeFromJson;
+
   final ToJson<TSearchUser> searchUserToJson;
   final ToJson<TSearchEmployee> searchEmployeeToJson;
+
   final ToJson<TInsertUser> insertUserToJson;
   final ToJson<TInsertEmployee> insertEmployeeToJson;
+
   final ToJson<TUpdateUser> updateUserToJson;
   final ToJson<TUpdateEmployee> updateEmployeeToJson;
 
@@ -48,7 +50,9 @@ class GenericCrudProvider<
     required this.updateEmployeeToJson,
   }) : super(endpoint);
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // GET BY ID
+  // ---------------------------------------------------------------------------
 
   Future<ApiResult<TModelUser>> entityGetByIdForUsers(int? id) {
     return _getById(
@@ -79,7 +83,9 @@ class GenericCrudProvider<
     );
   }
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // GET PAGED
+  // ---------------------------------------------------------------------------
 
   Future<ApiResult<PagedResult<TModelUser>>> getPagedEntityForUsers(
     TSearchUser search,
@@ -110,6 +116,7 @@ class GenericCrudProvider<
     required FromJson<TModel> fromJson,
   }) {
     final queryJson = toJson(search);
+
     final queryParameters = _toQueryParameters(queryJson);
 
     final requestUrl = '$url$path';
@@ -124,7 +131,9 @@ class GenericCrudProvider<
     );
   }
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // INSERT
+  // ---------------------------------------------------------------------------
 
   Future<ApiResult<TModelUser>> insertEntityForUsers(TInsertUser request) {
     return _insert(
@@ -164,7 +173,9 @@ class GenericCrudProvider<
     );
   }
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // UPDATE
+  // ---------------------------------------------------------------------------
 
   Future<ApiResult<TModelUser>> updateEntityForUsers(
     int? id,
@@ -211,7 +222,9 @@ class GenericCrudProvider<
     );
   }
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // SOFT DELETE
+  // ---------------------------------------------------------------------------
 
   Future<ApiResult<TModelUser>> softDelete(int? id) {
     return _softDelete(
@@ -234,14 +247,48 @@ class GenericCrudProvider<
     );
   }
 
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
 
-  Map<String, String> _toQueryParameters(Map<String, dynamic> json) {
-    return Map.fromEntries(
-      json.entries
-          .where((entry) => entry.value != null)
-          .map((entry) => MapEntry(entry.key, entry.value.toString())),
-    );
+  Map<String, List<String>> _toQueryParameters(Map<String, dynamic> json) {
+    final Map<String, List<String>> parameters = {};
+
+    for (final entry in json.entries) {
+      final value = entry.value;
+
+      // Ignore null values.
+      if (value == null) {
+        continue;
+      }
+
+      // Lists need to be sent as repeated query parameters.
+      //
+      // Example:
+      //
+      // genreIds: [1, 2]
+      //
+      // becomes:
+      //
+      // GenreIds=1&GenreIds=2
+      if (value is List) {
+        final values = value
+            .where((item) => item != null)
+            .map((item) => item.toString())
+            .toList();
+
+        if (values.isNotEmpty) {
+          parameters[entry.key] = values;
+        }
+
+        continue;
+      }
+
+      // Normal scalar parameter.
+      parameters[entry.key] = [value.toString()];
+    }
+
+    return parameters;
   }
 
   dynamic _decodeResponseBody(String body) {
@@ -275,7 +322,6 @@ class GenericCrudProvider<
       );
     }
 
-    // No JSON object / empty / unexpected response.
     return ApiResult<T>(
       statusCode: statusCode,
       data: null,
@@ -390,7 +436,7 @@ class GenericCrudProvider<
       case 417:
         return 'The request could not be completed as expected.';
       case 418:
-        return "The server cannot fulfill the request.";
+        return 'The server cannot fulfill the request.';
       case 422:
         return 'The request contains invalid data.';
       case 423:
@@ -410,10 +456,10 @@ class GenericCrudProvider<
       case 451:
         return 'The requested resource is unavailable for legal reasons.';
 
-      // 4xx — Client errors
+      // 5xx — Server errors
       case 500:
-        return 'Sever Side Error, check Logs please';
-      // Fallback
+        return 'Server Side Error, check Logs please.';
+
       default:
         return 'Request failed with status code $statusCode.';
     }

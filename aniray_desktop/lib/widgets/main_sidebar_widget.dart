@@ -1,8 +1,11 @@
+import 'package:aniray_desktop/models/movie/movie_models.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_inventory.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_orders.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_profile.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_requests.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_users.dart';
+import 'package:aniray_desktop/screens/other_screens/movie_details_screen.dart';
+import 'package:aniray_desktop/screens/other_screens/request_details_screen.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -16,13 +19,30 @@ class MainSidebarWidget extends StatefulWidget {
 class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
+  List<Widget> get _pages => [
     const DashboardOrdersScreen(title: "Orders"),
-    const DashboardInventoryScreen(title: "Inventory"),
+
+    DashboardInventoryScreen(
+      title: "Inventory",
+      onMovieSelected: openMovieDetails,
+    ),
+
     const DashboardRequestsScreen(title: "Requests"),
+
     const DashboardUsersScreen(title: "Users"),
+
     const DashboardProfileScreen(title: "Profile"),
   ];
+
+  // ---------------------------------------------------------------------------
+  // CURRENT CONTENT
+  // ---------------------------------------------------------------------------
+
+  Widget? _detailsPage;
+
+  // ---------------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +50,37 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
       body: Row(
         children: [
           _buildSidebar(),
-          Expanded(child: _pages[_selectedIndex]),
+
+          Expanded(child: _detailsPage ?? _pages[_selectedIndex]),
         ],
       ),
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // OPEN DETAILS
+  // ---------------------------------------------------------------------------
+
+  void openMovieDetails(MovieME movie) {
+    setState(() {
+      _detailsPage = MovieDetailsScreen(movie: movie);
+    });
+  }
+
+  void openRequestDetails(dynamic request) {
+    setState(() {
+      _detailsPage = RequestDetailsScreen(requestId: request);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // SIDEBAR
+  // ---------------------------------------------------------------------------
+
   Widget _buildSidebar() {
     return Container(
       width: 80,
-      color: AppColors.backgroundPrimary,
+      color: AppColors.backgroundFourth,
       child: Column(
         children: [
           const SizedBox(height: 20),
@@ -83,18 +124,23 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // MENU BUTTON
+  // ---------------------------------------------------------------------------
+
   Widget _menuButton({
     required IconData icon,
     required String text,
     required int index,
   }) {
-    final bool isSelected = _selectedIndex == index;
+    final bool isSelected = _detailsPage == null && _selectedIndex == index;
 
     return InkWell(
       onTap: () {
         if (index < _pages.length) {
           setState(() {
             _selectedIndex = index;
+            _detailsPage = null;
           });
         }
       },
@@ -108,7 +154,9 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: Colors.white),
+
             const SizedBox(height: 4),
+
             Text(
               text,
               style: const TextStyle(

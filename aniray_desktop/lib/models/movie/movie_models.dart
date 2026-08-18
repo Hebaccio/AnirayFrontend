@@ -8,6 +8,11 @@ part 'movie_models.g.dart';
 @JsonSerializable()
 class MovieURU {
   const MovieURU();
+
+  factory MovieURU.fromJson(Map<String, dynamic> json) =>
+      _$MovieURUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MovieURUToJson(this);
 }
 
 @JsonSerializable()
@@ -182,6 +187,11 @@ class MovieSOE extends MovieSOU {
 @JsonSerializable()
 class MovieIRU {
   const MovieIRU();
+
+  factory MovieIRU.fromJson(Map<String, dynamic> json) =>
+      _$MovieIRUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MovieIRUToJson(this);
 }
 
 @JsonSerializable()

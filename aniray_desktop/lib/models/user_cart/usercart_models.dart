@@ -19,6 +19,11 @@ class UserCartURU {
 @JsonSerializable()
 class UserCartURE {
   const UserCartURE();
+
+  factory UserCartURE.fromJson(Map<String, dynamic> json) =>
+      _$UserCartUREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserCartUREToJson(this);
 }
 
 @JsonSerializable()
@@ -46,6 +51,11 @@ class UserCartMU {
 @JsonSerializable()
 class UserCartME {
   const UserCartME();
+
+  factory UserCartME.fromJson(Map<String, dynamic> json) =>
+      _$UserCartMEFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserCartMEToJson(this);
 }
 
 @JsonSerializable()
@@ -63,6 +73,11 @@ class UserCartIRU {
 @JsonSerializable()
 class UserCartIRE {
   const UserCartIRE();
+
+  factory UserCartIRE.fromJson(Map<String, dynamic> json) =>
+      _$UserCartIREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserCartIREToJson(this);
 }
 
 @JsonSerializable()

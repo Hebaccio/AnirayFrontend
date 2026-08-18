@@ -19,6 +19,11 @@ class UserFavoritesURU {
 @JsonSerializable()
 class UserFavoritesURE {
   const UserFavoritesURE();
+
+  factory UserFavoritesURE.fromJson(Map<String, dynamic> json) =>
+      _$UserFavoritesUREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserFavoritesUREToJson(this);
 }
 
 @JsonSerializable()
@@ -86,4 +91,9 @@ class UserFavoritesIRU {
 @JsonSerializable()
 class UserFavoritesIRE {
   const UserFavoritesIRE();
+
+  factory UserFavoritesIRE.fromJson(Map<String, dynamic> json) =>
+      _$UserFavoritesIREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserFavoritesIREToJson(this);
 }

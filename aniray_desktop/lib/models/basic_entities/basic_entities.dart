@@ -14,8 +14,14 @@ class BaseSO {
   Map<String, dynamic> toJson() => _$BaseSOToJson(this);
 }
 
+@JsonSerializable()
 class BaseClassIRU {
   const BaseClassIRU();
+
+  factory BaseClassIRU.fromJson(Map<String, dynamic> json) =>
+      _$BaseClassIRUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BaseClassIRUToJson(this);
 }
 
 @JsonSerializable()
@@ -30,8 +36,14 @@ class BaseClassIRE {
   Map<String, dynamic> toJson() => _$BaseClassIREToJson(this);
 }
 
+@JsonSerializable()
 class BaseClassURU {
   const BaseClassURU();
+
+  factory BaseClassURU.fromJson(Map<String, dynamic> json) =>
+      _$BaseClassURUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BaseClassURUToJson(this);
 }
 
 @JsonSerializable()

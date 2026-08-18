@@ -1,5 +1,6 @@
 import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
 import 'package:http/http.dart' as http;
+
 import 'api_response.dart';
 
 class ApiClient {
@@ -25,7 +26,7 @@ class ApiClient {
   Future<ApiResponse<String>> get(
     String url, {
     Map<String, String>? headers,
-    Map<String, String>? queryParameters,
+    Map<String, List<String>>? queryParameters,
   }) async {
     final uri = Uri.parse(url).replace(queryParameters: queryParameters);
 

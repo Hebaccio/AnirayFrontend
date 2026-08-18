@@ -6,34 +6,6 @@ import '../basic_entities/basic_entities.dart';
 part 'request_models.g.dart';
 
 @JsonSerializable()
-class RequestURU {
-  const RequestURU();
-}
-
-@JsonSerializable()
-class RequestURE {
-  final String? response;
-
-  const RequestURE({this.response});
-
-  factory RequestURE.fromJson(Map<String, dynamic> json) =>
-      _$RequestUREFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RequestUREToJson(this);
-}
-
-@JsonSerializable()
-class RequestSOU extends BaseSO {
-  const RequestSOU({super.page, super.pageSize});
-
-  factory RequestSOU.fromJson(Map<String, dynamic> json) =>
-      _$RequestSOUFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$RequestSOUToJson(this);
-}
-
-@JsonSerializable()
 class RequestMU {
   final int id;
   final String title;
@@ -62,38 +34,6 @@ class RequestMU {
 
   Map<String, dynamic> toJson() => _$RequestMUToJson(this);
 }
-
-@JsonSerializable()
-class RequestSOE extends BaseSO {
-  final String? titleFTS;
-  final DateTime? dateTimeGTE;
-  final DateTime? dateTimeLTE;
-  final String? userFullNameFTS;
-  final String? userMailFTS;
-  final RequestSortField? orderBy;
-  final SortType? sortType;
-
-  const RequestSOE({
-    super.page,
-    super.pageSize,
-    this.titleFTS,
-    this.dateTimeGTE,
-    this.dateTimeLTE,
-    this.userFullNameFTS,
-    this.userMailFTS,
-    this.orderBy,
-    this.sortType,
-  });
-
-  factory RequestSOE.fromJson(Map<String, dynamic> json) =>
-      _$RequestSOEFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$RequestSOEToJson(this);
-}
-
-@JsonEnum()
-enum RequestSortField { dateTime }
 
 @JsonSerializable()
 class RequestME {
@@ -126,6 +66,46 @@ class RequestME {
 }
 
 @JsonSerializable()
+class RequestSOU extends BaseSO {
+  const RequestSOU({super.page, super.pageSize});
+
+  factory RequestSOU.fromJson(Map<String, dynamic> json) =>
+      _$RequestSOUFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RequestSOUToJson(this);
+}
+
+@JsonSerializable()
+class RequestSOE extends BaseSO {
+  final String? titleFTS;
+  final DateTime? dateTimeGTE;
+  final DateTime? dateTimeLTE;
+  final String? userFullNameFTS;
+  final String? userMailFTS;
+  final RequestSortField? orderBy;
+  final SortType? sortType;
+
+  const RequestSOE({
+    super.page,
+    super.pageSize,
+    this.titleFTS,
+    this.dateTimeGTE,
+    this.dateTimeLTE,
+    this.userFullNameFTS,
+    this.userMailFTS,
+    this.orderBy,
+    this.sortType,
+  });
+
+  factory RequestSOE.fromJson(Map<String, dynamic> json) =>
+      _$RequestSOEFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RequestSOEToJson(this);
+}
+
+@JsonSerializable()
 class RequestIRU {
   final String title;
   final String text;
@@ -141,4 +121,34 @@ class RequestIRU {
 @JsonSerializable()
 class RequestIRE {
   const RequestIRE();
+
+  factory RequestIRE.fromJson(Map<String, dynamic> json) =>
+      _$RequestIREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RequestIREToJson(this);
 }
+
+@JsonSerializable()
+class RequestURU {
+  const RequestURU();
+
+  factory RequestURU.fromJson(Map<String, dynamic> json) =>
+      _$RequestURUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RequestURUToJson(this);
+}
+
+@JsonSerializable()
+class RequestURE {
+  final String? response;
+
+  const RequestURE({this.response});
+
+  factory RequestURE.fromJson(Map<String, dynamic> json) =>
+      _$RequestUREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RequestUREToJson(this);
+}
+
+@JsonEnum()
+enum RequestSortField { dateTime }

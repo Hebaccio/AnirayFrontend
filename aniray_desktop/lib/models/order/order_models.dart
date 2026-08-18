@@ -8,6 +8,11 @@ part 'order_models.g.dart';
 @JsonSerializable()
 class OrderURU {
   const OrderURU();
+
+  factory OrderURU.fromJson(Map<String, dynamic> json) =>
+      _$OrderURUFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OrderURUToJson(this);
 }
 
 @JsonSerializable()
@@ -185,6 +190,11 @@ class OrderIRU {
 @JsonSerializable()
 class OrderIRE {
   const OrderIRE();
+
+  factory OrderIRE.fromJson(Map<String, dynamic> json) =>
+      _$OrderIREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OrderIREToJson(this);
 }
 
 @JsonSerializable()
@@ -239,4 +249,9 @@ class OrderBluRayIRU {
 @JsonSerializable()
 class OrderBluRayIRE {
   const OrderBluRayIRE();
+
+  factory OrderBluRayIRE.fromJson(Map<String, dynamic> json) =>
+      _$OrderBluRayIREFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OrderBluRayIREToJson(this);
 }

@@ -16,11 +16,23 @@ Map<String, dynamic> _$BaseSOToJson(BaseSO instance) => <String, dynamic>{
   'pageSize': instance.pageSize,
 };
 
+BaseClassIRU _$BaseClassIRUFromJson(Map<String, dynamic> json) =>
+    BaseClassIRU();
+
+Map<String, dynamic> _$BaseClassIRUToJson(BaseClassIRU instance) =>
+    <String, dynamic>{};
+
 BaseClassIRE _$BaseClassIREFromJson(Map<String, dynamic> json) =>
     BaseClassIRE(name: json['name'] as String);
 
 Map<String, dynamic> _$BaseClassIREToJson(BaseClassIRE instance) =>
     <String, dynamic>{'name': instance.name};
+
+BaseClassURU _$BaseClassURUFromJson(Map<String, dynamic> json) =>
+    BaseClassURU();
+
+Map<String, dynamic> _$BaseClassURUToJson(BaseClassURU instance) =>
+    <String, dynamic>{};
 
 BaseClassURE _$BaseClassUREFromJson(Map<String, dynamic> json) => BaseClassURE(
   name: json['name'] as String?,

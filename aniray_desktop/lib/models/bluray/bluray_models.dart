@@ -1,4 +1,5 @@
 import 'package:aniray_desktop/helpers/date_only_converter.dart';
+import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'bluray_models.g.dart';
@@ -18,13 +19,36 @@ class BluRayMU {
 
 @JsonSerializable()
 class BluRayME {
+  final int movieId;
   final int id;
+  final String image;
   final String title;
+  final String description;
+  @DateOnlyConverter()
+  final DateTime releaseDate;
+  final BaseClassMU videoFormat;
+  final BaseClassMU audioFormat;
+  final int discCount;
+  final int runtime;
+  final int inStock;
+  final String subtitleLanguage;
+  final double price;
   final bool isDeleted;
 
   const BluRayME({
+    required this.movieId,
     required this.id,
+    required this.image,
     required this.title,
+    required this.description,
+    required this.releaseDate,
+    required this.videoFormat,
+    required this.audioFormat,
+    required this.discCount,
+    required this.runtime,
+    required this.inStock,
+    required this.subtitleLanguage,
+    required this.price,
     required this.isDeleted,
   });
 
