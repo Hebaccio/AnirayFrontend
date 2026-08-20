@@ -146,6 +146,7 @@ class BluRayURE {
   final String? image;
   final String? title;
   final String? description;
+  @DateOnlyConverter()
   final DateTime? releaseDate;
   final int? videoFormatId;
   final int? audioFormatId;

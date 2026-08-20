@@ -1,10 +1,13 @@
 import 'package:aniray_desktop/models/movie/movie_models.dart';
+import 'package:aniray_desktop/providers/auth_provider.dart';
+import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
+import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_inventory.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_orders.dart';
-import 'package:aniray_desktop/screens/dashboard_screens/dashboard_profile.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_requests.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_users.dart';
 import 'package:aniray_desktop/screens/other_screens/movie_details_screen.dart';
+import 'package:aniray_desktop/screens/other_screens/movie_edit_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/request_details_screen.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +22,19 @@ class MainSidebarWidget extends StatefulWidget {
 class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   int _selectedIndex = 0;
 
+  bool _isLoggingOut = false;
+
+  // ---------------------------------------------------------------------------
+  // PAGES
+  // ---------------------------------------------------------------------------
+
   List<Widget> get _pages => [
     const DashboardOrdersScreen(title: "Orders"),
 
     DashboardInventoryScreen(
       title: "Inventory",
       onMovieSelected: openMovieDetails,
+      onAddMovie: openAddMovie,
     ),
 
     DashboardRequestsScreen(
@@ -33,8 +43,6 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
     ),
 
     const DashboardUsersScreen(title: "Users"),
-
-    const DashboardProfileScreen(title: "Profile"),
   ];
 
   // ---------------------------------------------------------------------------
@@ -62,7 +70,7 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   }
 
   // ---------------------------------------------------------------------------
-  // OPEN DETAILS
+  // OPEN MOVIE DETAILS
   // ---------------------------------------------------------------------------
 
   void openMovieDetails(MovieME movie) {
@@ -70,9 +78,24 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
       _detailsPage = MovieDetailsScreen(
         movie: movie,
         onBack: _closeDetailsPage,
+        onEditMovie: () => openEditMovie(movie.id),
       );
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // OPEN ADD MOVIE
+  // ---------------------------------------------------------------------------
+
+  void openAddMovie() {
+    setState(() {
+      _detailsPage = MovieEditScreen(movieId: null, onBack: _closeDetailsPage);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // OPEN REQUEST DETAILS
+  // ---------------------------------------------------------------------------
 
   void openRequestDetails(int requestId) {
     setState(() {
@@ -83,11 +106,65 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // CLOSE DETAILS / EDIT PAGE
+  // ---------------------------------------------------------------------------
+
   void _closeDetailsPage() {
     setState(() {
       _detailsPage = null;
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // OPEN EDIT MOVIE
+  // ---------------------------------------------------------------------------
+
+  void openEditMovie(int movieId) {
+    setState(() {
+      _detailsPage = MovieEditScreen(
+        movieId: movieId,
+        onBack: _closeDetailsPage,
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // LOGOUT
+  // ---------------------------------------------------------------------------
+
+  Future<void> _logout() async {
+    if (_isLoggingOut) {
+      return;
+    }
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    try {
+      final AuthProvider authProvider = AuthProvider();
+
+      await authProvider.logout();
+    } catch (_) {
+      // Even if the backend logout fails, we still clear the local
+      // authentication state and return the user to the login screen.
+    } finally {
+      AuthResult.clear();
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(title: "Login"),
+      ),
+      (route) => false,
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // SIDEBAR
   // ---------------------------------------------------------------------------
@@ -131,10 +208,47 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
 
           const Spacer(),
 
-          _menuButton(icon: Icons.person_3_rounded, text: "Profile", index: 4),
+          _logoutButton(),
 
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // LOGOUT BUTTON
+  // ---------------------------------------------------------------------------
+
+  Widget _logoutButton() {
+    return InkWell(
+      onTap: _isLoggingOut ? null : _logout,
+      child: Container(
+        width: double.infinity,
+        height: 70,
+        color: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _isLoggingOut
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.logout, color: Colors.white),
+
+            const SizedBox(height: 4),
+
+            const Text(
+              "Logout",
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 11),
+            ),
+          ],
+        ),
       ),
     );
   }

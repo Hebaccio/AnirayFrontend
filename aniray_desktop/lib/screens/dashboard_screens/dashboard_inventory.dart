@@ -13,11 +13,12 @@ class DashboardInventoryScreen extends StatefulWidget {
     super.key,
     required this.title,
     this.onMovieSelected,
+    this.onAddMovie,
   });
 
   final String title;
-
   final void Function(MovieME movie)? onMovieSelected;
+  final VoidCallback? onAddMovie;
 
   @override
   State<DashboardInventoryScreen> createState() =>
@@ -43,6 +44,9 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
 
   final MovieProvider _movieProvider = MovieProvider();
   final TextEditingController _searchController = TextEditingController();
+
+  // Scroll controller used by the main page.
+  final ScrollController _scrollController = ScrollController();
 
   Timer? _searchDebounce;
 
@@ -112,6 +116,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _scrollController.dispose();
 
     super.dispose();
   }
@@ -226,6 +231,11 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
       _page = 0;
     });
 
+    // Search starts from page 0, so also make sure the user is at the top.
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+
     await _loadMovies();
   }
 
@@ -241,6 +251,11 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
     setState(() {
       _page = page;
     });
+
+    // Reset the main scroll position when changing pages.
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
 
     _loadMovies();
   }
@@ -273,6 +288,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 30),
               child: ConstrainedBox(
@@ -382,9 +398,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
           constraints: const BoxConstraints(maxWidth: 560, minWidth: 300),
           child: _buildSearchField(),
         ),
-
         const SizedBox(width: 22),
-
         _buildFilterButton(),
       ],
     );
@@ -495,6 +509,10 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
       _page = 0;
     });
 
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+
     await _loadMovies();
   }
 
@@ -513,9 +531,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.add, color: AppColors.textPrimary, size: 22),
-
                 SizedBox(width: 10),
-
                 Text(
                   'Add Movie',
                   style: TextStyle(
@@ -533,7 +549,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
   }
 
   void _onAddMoviePressed() {
-    // Add Movie functionality will be added later.
+    widget.onAddMovie?.call();
   }
 
   Widget _buildIconButton({
@@ -598,9 +614,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(child: _buildMoviePoster(movie)),
-
             const SizedBox(height: 8),
-
             _buildMovieTitle(movie),
           ],
         ),
@@ -824,9 +838,7 @@ class _DashboardInventoryScreenState extends State<DashboardInventoryScreen> {
               color: AppColors.textSecondary,
               size: 60,
             ),
-
             SizedBox(height: 16),
-
             Text(
               'No movies found',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 18),

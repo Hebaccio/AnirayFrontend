@@ -122,9 +122,10 @@ BluRayURE _$BluRayUREFromJson(Map<String, dynamic> json) => BluRayURE(
   image: json['image'] as String?,
   title: json['title'] as String?,
   description: json['description'] as String?,
-  releaseDate: json['releaseDate'] == null
-      ? null
-      : DateTime.parse(json['releaseDate'] as String),
+  releaseDate: _$JsonConverterFromJson<String, DateTime>(
+    json['releaseDate'],
+    const DateOnlyConverter().fromJson,
+  ),
   videoFormatId: (json['videoFormatId'] as num?)?.toInt(),
   audioFormatId: (json['audioFormatId'] as num?)?.toInt(),
   movieId: (json['movieId'] as num?)?.toInt(),
@@ -139,7 +140,10 @@ Map<String, dynamic> _$BluRayUREToJson(BluRayURE instance) => <String, dynamic>{
   'image': instance.image,
   'title': instance.title,
   'description': instance.description,
-  'releaseDate': instance.releaseDate?.toIso8601String(),
+  'releaseDate': _$JsonConverterToJson<String, DateTime>(
+    instance.releaseDate,
+    const DateOnlyConverter().toJson,
+  ),
   'videoFormatId': instance.videoFormatId,
   'audioFormatId': instance.audioFormatId,
   'movieId': instance.movieId,
@@ -149,3 +153,13 @@ Map<String, dynamic> _$BluRayUREToJson(BluRayURE instance) => <String, dynamic>{
   'price': instance.price,
   'isDeleted': instance.isDeleted,
 };
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) => json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) => value == null ? null : toJson(value);

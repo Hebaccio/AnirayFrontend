@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 class AuthProvider {
   static String? _baseUrl;
   final String _loginForStaff = "Auth/Login/ForStaff";
+  final String _logout = "Auth/Logout";
   final String _verify2FA = "Auth/Verify-2FA";
   final String _resend2FA = "Auth/Resend-2FA";
 
@@ -35,11 +36,13 @@ class AuthProvider {
     if (response.statusCode < 299) {
       AuthResult.twoFactorRequired = data["twoFactorRequired"];
       AuthResult.userId = data["userId"];
-      AuthResult.accessToken = data["accessToken"];
+      AuthResult.setAccessToken(data["accessToken"]);
       AuthResult.refreshToken = data["refreshToken"];
+
       if (data["expiresAt"] != null) {
         AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
       }
+
       return AuthResult();
     }
     String errorMessage = "Something went wrong";
@@ -71,11 +74,13 @@ class AuthProvider {
     if (response.statusCode < 299) {
       AuthResult.twoFactorRequired = data["twoFactorRequired"];
       AuthResult.userId = data["userId"];
-      AuthResult.accessToken = data["accessToken"];
+      AuthResult.setAccessToken(data["accessToken"]);
       AuthResult.refreshToken = data["refreshToken"];
+
       if (data["expiresAt"] != null) {
         AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
       }
+
       return AuthResult();
     }
     String errorMessage = "Something went wrong";
@@ -99,7 +104,7 @@ class AuthProvider {
     if (response.statusCode < 299) {
       AuthResult.twoFactorRequired = data["twoFactorRequired"];
       AuthResult.userId = data["userId"];
-      AuthResult.accessToken = data["accessToken"];
+      AuthResult.setAccessToken(data["accessToken"]);
       AuthResult.refreshToken = data["refreshToken"];
 
       if (data["expiresAt"] != null) {
@@ -114,6 +119,50 @@ class AuthProvider {
     if (data["errors"] != null) {
       final errors = data["errors"] as Map<String, dynamic>;
       errorMessage = errors.values.expand((e) => e).join("\n");
+    }
+
+    throw Exception(errorMessage);
+  }
+
+  Future<void> logout() async {
+    final refreshToken = AuthResult.refreshToken;
+
+    if (refreshToken == null || refreshToken.isEmpty) {
+      AuthResult.clear();
+      return;
+    }
+
+    final uri = Uri.parse("$_baseUrl$_logout");
+
+    final response = await http.post(
+      uri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"refreshToken": refreshToken}),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      AuthResult.clear();
+      return;
+    }
+
+    String errorMessage = "Failed to logout.";
+
+    try {
+      final data = jsonDecode(response.body);
+
+      if (data is Map<String, dynamic>) {
+        if (data["message"] != null) {
+          errorMessage = data["message"].toString();
+        } else if (data["errors"] != null) {
+          final errors = data["errors"] as Map<String, dynamic>;
+
+          errorMessage = errors.values
+              .expand((e) => e is List ? e : [e])
+              .join("\n");
+        }
+      }
+    } catch (_) {
+      // Keep default error message.
     }
 
     throw Exception(errorMessage);

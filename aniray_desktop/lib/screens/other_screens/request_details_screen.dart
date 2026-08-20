@@ -306,10 +306,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             ),
           ],
 
-          const SizedBox(height: 25),
-
-          _buildReadStatus(request),
-
           if (_canReply(request)) ...[
             const SizedBox(height: 28),
 
@@ -413,27 +409,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             value,
             style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReadStatus(RequestME request) {
-    return Row(
-      children: [
-        Icon(
-          request.readByStaff
-              ? Icons.mark_email_read_outlined
-              : Icons.mark_email_unread_outlined,
-          color: request.readByStaff ? Colors.greenAccent : Colors.orangeAccent,
-          size: 20,
-        ),
-
-        const SizedBox(width: 10),
-
-        Text(
-          request.readByStaff ? 'Read by staff' : 'Not read by staff',
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ],
     );

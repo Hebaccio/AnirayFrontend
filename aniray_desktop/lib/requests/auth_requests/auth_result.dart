@@ -1,9 +1,48 @@
+import 'package:jwt_decoder/jwt_decoder.dart';
+
 class AuthResult {
   static bool? twoFactorRequired;
   static int? userId;
-  static String? accessToken = AuthResult2.accessTokenForEmployees;
+  static String? accessToken; // = AuthResult2.accessTokenForEmployees;
   static String? refreshToken;
   static DateTime? expiresAt;
+
+  static String? role;
+
+  static void setAccessToken(String? token) {
+    accessToken = token;
+
+    if (token == null || token.isEmpty) {
+      role = null;
+      return;
+    }
+
+    final decodedToken = JwtDecoder.decode(token);
+
+    role =
+        decodedToken["role"]?.toString() ??
+        decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+            ?.toString();
+  }
+
+  /*
+  static bool get isUser => role == "User";
+  static bool get isEmployee => role == "Employee";
+  static bool get isBoss => role == "Boss";
+  */
+
+  static bool get isUser => false;
+  static bool get isEmployee => true;
+  static bool get isBoss => false;
+
+  static void clear() {
+    twoFactorRequired = null;
+    userId = null;
+    accessToken = null;
+    refreshToken = null;
+    expiresAt = null;
+    role = null;
+  }
 }
 
 class AuthResult2 {
