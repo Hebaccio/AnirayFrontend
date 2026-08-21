@@ -9,6 +9,7 @@ import 'package:aniray_desktop/screens/dashboard_screens/dashboard_users.dart';
 import 'package:aniray_desktop/screens/other_screens/movie_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/movie_edit_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/request_details_screen.dart';
+import 'package:aniray_desktop/screens/other_screens/user_edit_screen.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -42,7 +43,7 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
       onRequestSelected: openRequestDetails,
     ),
 
-    const DashboardUsersScreen(title: "Users"),
+    DashboardUsersScreen(title: "Users", onUserSelected: openUserEdit),
   ];
 
   // ---------------------------------------------------------------------------
@@ -67,6 +68,12 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
         ],
       ),
     );
+  }
+
+  void openUserEdit(int userId) {
+    setState(() {
+      _detailsPage = UserEditScreen(userId: userId, onBack: _closeDetailsPage);
+    });
   }
 
   // ---------------------------------------------------------------------------

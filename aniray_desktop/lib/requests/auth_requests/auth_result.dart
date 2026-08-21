@@ -3,7 +3,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class AuthResult {
   static bool? twoFactorRequired;
   static int? userId;
-  static String? accessToken; // = AuthResult2.accessTokenForEmployees;
+  static String? accessToken = AuthResult2.accessTokenForEmployees;
   static String? refreshToken;
   static DateTime? expiresAt;
 

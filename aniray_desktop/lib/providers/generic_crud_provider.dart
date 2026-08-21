@@ -361,11 +361,16 @@ class GenericCrudProvider<
         data: null,
         message: 'The server returned an invalid response.',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('========== GENERIC PROVIDER ERROR ==========');
+      print('ERROR: $e');
+      print('STACK TRACE: $stackTrace');
+      print('============================================');
+
       return ApiResult<T>(
         statusCode: null,
         data: null,
-        message: 'An unexpected error occurred.',
+        message: 'An unexpected error occurred: $e',
       );
     }
   }
