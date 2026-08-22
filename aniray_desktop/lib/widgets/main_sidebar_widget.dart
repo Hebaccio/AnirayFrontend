@@ -8,6 +8,7 @@ import 'package:aniray_desktop/screens/dashboard_screens/dashboard_requests.dart
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_users.dart';
 import 'package:aniray_desktop/screens/other_screens/movie_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/movie_edit_screen.dart';
+import 'package:aniray_desktop/screens/other_screens/order_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/request_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/user_edit_screen.dart';
 import 'package:aniray_desktop/theme/app_colors.dart';
@@ -30,7 +31,7 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   // ---------------------------------------------------------------------------
 
   List<Widget> get _pages => [
-    const DashboardOrdersScreen(title: "Orders"),
+    DashboardOrdersScreen(title: "Orders", onOrderSelected: openOrderDetails),
 
     DashboardInventoryScreen(
       title: "Inventory",
@@ -73,6 +74,15 @@ class _MainSidebarWidgetState extends State<MainSidebarWidget> {
   void openUserEdit(int userId) {
     setState(() {
       _detailsPage = UserEditScreen(userId: userId, onBack: _closeDetailsPage);
+    });
+  }
+
+  void openOrderDetails(int orderId) {
+    setState(() {
+      _detailsPage = OrderDetailsScreen(
+        orderId: orderId,
+        onBack: _closeDetailsPage,
+      );
     });
   }
 

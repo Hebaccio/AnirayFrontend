@@ -732,7 +732,11 @@ class _DashboardOrdersScreenState extends State<DashboardOrdersScreen> {
       child: SizedBox(
         height: 30,
         child: ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: widget.onOrderSelected == null
+              ? null
+              : () {
+                  widget.onOrderSelected!(order.id);
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF08111F),
             foregroundColor: const Color(0xFFE5E7EB),
@@ -742,44 +746,11 @@ class _DashboardOrdersScreenState extends State<DashboardOrdersScreen> {
               borderRadius: BorderRadius.circular(6),
             ),
           ),
-          icon: const Icon(Icons.edit, size: 16),
+          icon: const Icon(Icons.visibility_outlined, size: 16),
           label: const Text('View Order', style: TextStyle(fontSize: 13)),
         ),
       ),
     );
-  }
-
-  // ===========================================================================
-  // ORDER DETAILS
-  // ===========================================================================
-
-  Future<void> _updateOrderStatus(int orderId, int statusId) async {
-    final ApiResult<OrderME> result = await _orderProvider
-        .updateEntityForEmployees(orderId, OrderURE(orderStatusId: statusId));
-
-    if (!mounted) {
-      return;
-    }
-
-    if (result.data != null) {
-      Navigator.of(context).pop();
-
-      await _loadOrders();
-
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order status updated successfully.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.message ?? 'Failed to update order status.'),
-        ),
-      );
-    }
   }
 
   // ===========================================================================
