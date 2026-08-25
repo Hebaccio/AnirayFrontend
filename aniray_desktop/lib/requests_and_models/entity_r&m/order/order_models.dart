@@ -1,6 +1,6 @@
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
-import 'package:aniray_desktop/models/bluray/bluray_models.dart';
-import 'package:aniray_desktop/models/movie/movie_models.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/bluray/bluray_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'order_models.g.dart';

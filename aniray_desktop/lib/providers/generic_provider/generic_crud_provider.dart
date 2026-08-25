@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aniray_desktop/providers/api_response.dart';
-import 'package:aniray_desktop/providers/api_client.dart';
-import 'package:aniray_desktop/providers/api_result.dart';
-import 'package:aniray_desktop/requests/paged_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/api_result_helpers/api_response.dart';
+import 'package:aniray_desktop/providers/generic_provider/api_client.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/paged_result/paged_result.dart';
 
-import '../providers/base_provider.dart';
+import 'base_provider.dart';
 
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
 typedef ToJson<T> = Map<String, dynamic> Function(T value);

@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
-import 'package:aniray_desktop/models/movie/movie_models.dart';
-import 'package:aniray_desktop/models/order/order_models.dart';
-import 'package:aniray_desktop/providers/api_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/order/order_models.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
 import 'package:aniray_desktop/providers/entity_providers/order_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/order_status_provider.dart';
-import 'package:aniray_desktop/requests/paged_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/paged_result/paged_result.dart';
 import 'package:flutter/material.dart';
 
 class DashboardOrdersScreen extends StatefulWidget {
@@ -2194,6 +2194,7 @@ class _OrderDetailsDialogState extends State<OrderDetailsDialog> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(7),
+
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(

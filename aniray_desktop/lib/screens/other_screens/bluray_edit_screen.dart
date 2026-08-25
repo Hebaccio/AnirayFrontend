@@ -1,9 +1,9 @@
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
-import 'package:aniray_desktop/models/bluray/bluray_models.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/bluray/bluray_models.dart';
 import 'package:aniray_desktop/providers/entity_providers/audio_format_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/bluray_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/video_format_provider.dart';
-import 'package:aniray_desktop/theme/app_colors.dart';
+import 'package:aniray_desktop/helpers/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BluRayEditScreen extends StatefulWidget {

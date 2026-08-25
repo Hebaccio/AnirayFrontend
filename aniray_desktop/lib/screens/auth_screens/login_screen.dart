@@ -1,14 +1,23 @@
-import 'package:aniray_desktop/providers/auth_provider.dart';
-import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
-import 'package:aniray_desktop/requests/auth_requests/login_dto.dart';
+import 'package:aniray_desktop/providers/auth_provider/auth_provider.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/auth_result.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/login_dto.dart';
 import 'package:aniray_desktop/screens/auth_screens/2fa_screen.dart';
 import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:aniray_desktop/theme/app_colors.dart';
+import 'package:aniray_desktop/helpers/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.title});
+  const LoginScreen({
+    super.key,
+    required this.title,
+    this.sessionExpired = false,
+  });
+
   final String title;
+
+  /// True when the user was sent back to the login screen because
+  /// their access token and refresh token could no longer be used.
+  final bool sessionExpired;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -17,13 +26,16 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _showValidationErrors = false;
   String? _emailError;
   String? _passwordError;
 
   final RegExp _emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$/%^&*(),.?":{}|<>]).{6,}$',
   );
@@ -55,27 +67,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (!_validate()) return;
+
     setState(() {
       _isLoading = true;
     });
+
     await Future.delayed(const Duration(seconds: 1));
+
     try {
-      AuthProvider provider = AuthProvider();
+      final provider = AuthProvider();
+
       LoginDto.email = _emailController.text;
       LoginDto.password = _passwordController.text;
 
       await provider.loginForStaff();
 
+      if (!mounted) return;
+
       if (AuthResult.twoFactorRequired == true) {
         Navigator.of(
           context,
-        ).push(MaterialPageRoute(builder: (context) => TwoFAScreen()));
+        ).push(MaterialPageRoute(builder: (context) => const TwoFAScreen()));
       } else {
-        Navigator.of(context).push(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainSidebarWidget()),
+          (route) => false,
         );
       }
     } catch (e) {
+      if (!mounted) return;
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -103,10 +124,20 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -138,16 +169,66 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
-                    const SizedBox(height: 32),
+                    // ---------------------------------------------------------
+                    // SESSION EXPIRED MESSAGE
+                    // ---------------------------------------------------------
+                    if (widget.sessionExpired) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundTertiary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(
+                              Icons.lock_clock_outlined,
+                              color: AppColors.textPrimary,
+                              size: 28,
+                            ),
+
+                            SizedBox(height: 8),
+
+                            Text(
+                              "Session expired",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+
+                            SizedBox(height: 4),
+
+                            Text(
+                              "Your session has expired. Please log in again.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                    ],
+
+                    const SizedBox(height: 8),
 
                     TextField(
                       controller: _emailController,
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: "Email",
-                        labelStyle: TextStyle(color: AppColors.textPrimary),
+                        labelStyle: const TextStyle(
+                          color: AppColors.textPrimary,
+                        ),
                         filled: true,
                         fillColor: AppColors.backgroundTertiary,
                         border: OutlineInputBorder(
@@ -156,6 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
                     if (_showValidationErrors && _emailError != null)
                       Padding(
                         padding: const EdgeInsets.only(
@@ -184,7 +266,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         labelText: "Password",
-                        labelStyle: TextStyle(color: AppColors.textPrimary),
+                        labelStyle: const TextStyle(
+                          color: AppColors.textPrimary,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -192,7 +276,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : Icons.visibility_outlined,
                             color: AppColors.textSecondary,
                           ),
-
                           onPressed: () {
                             setState(() {
                               _obscurePassword = !_obscurePassword;
@@ -207,6 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
                     if (_showValidationErrors && _passwordError != null)
                       Padding(
                         padding: const EdgeInsets.only(
@@ -226,6 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+
                     const SizedBox(height: 16),
 
                     Row(

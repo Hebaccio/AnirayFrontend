@@ -1,10 +1,10 @@
-import 'package:aniray_desktop/providers/auth_provider.dart';
-import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
-import 'package:aniray_desktop/requests/auth_requests/verify_2fa_dto.dart';
+import 'package:aniray_desktop/providers/auth_provider/auth_provider.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/auth_result.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/verify_2fa_dto.dart';
 import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
 import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:aniray_desktop/theme/app_colors.dart';
+import 'package:aniray_desktop/helpers/app_colors.dart';
 
 class TwoFAScreen extends StatefulWidget {
   const TwoFAScreen({super.key});
@@ -33,8 +33,9 @@ class _TwoFAScreenState extends State<TwoFAScreen> {
       await provider.verify2FA();
 
       if (AuthResult.accessToken != null) {
-        Navigator.of(context).push(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainSidebarWidget()),
+          (route) => false,
         );
       } else {
         _handleWrongCode();
@@ -73,9 +74,14 @@ class _TwoFAScreenState extends State<TwoFAScreen> {
           actions: [
             TextButton(
               onPressed: () {
+                AuthResult.clear();
+
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
-                    builder: (context) => const LoginScreen(title: "Login"),
+                    builder: (context) => const LoginScreen(
+                      title: "Login",
+                      sessionExpired: false,
+                    ),
                   ),
                   (route) => false,
                 );

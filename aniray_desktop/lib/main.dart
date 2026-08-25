@@ -1,23 +1,63 @@
-import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
+import 'package:aniray_desktop/providers/generic_provider/api_client.dart';
+import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-//“Start the Flutter widget tree using MyApp as the root widget.”
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  late final ApiClient _apiClient;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _apiClient = ApiClient(
+      http.Client(),
+      onAuthenticationFailed: _handleAuthenticationFailed,
+    );
+  }
+
+  void _handleAuthenticationFailed() {
+    final navigator = _navigatorKey.currentState;
+
+    if (navigator == null) {
+      return;
+    }
+
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(title: "Login", sessionExpired: true),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AniRay (Desktop)',
+
+      navigatorKey: _navigatorKey,
+
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Color.fromARGB(255, 93, 12, 94)),
+        colorScheme: .fromSeed(
+          seedColor: const Color.fromARGB(255, 93, 12, 94),
+        ),
       ),
-      home: MainSidebarWidget(key: ValueKey("main")),
-      //home: MainSidebarWidget(key: ValueKey("main")),
+
+      home: const LoginScreen(key: ValueKey("main"), title: ""),
     );
   }
 }

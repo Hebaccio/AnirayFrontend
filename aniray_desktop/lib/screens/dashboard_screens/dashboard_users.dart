@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
-import 'package:aniray_desktop/models/movie/movie_models.dart';
-import 'package:aniray_desktop/models/user/user_models.dart';
-import 'package:aniray_desktop/providers/api_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/user/user_models.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
 import 'package:aniray_desktop/providers/entity_providers/gender_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/user_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/user_role_provider.dart';
 import 'package:aniray_desktop/providers/entity_providers/user_status_provider.dart';
-import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
-import 'package:aniray_desktop/requests/paged_result.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/auth_result.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/paged_result/paged_result.dart';
 import 'package:flutter/material.dart';
 
 class DashboardUsersScreen extends StatefulWidget {

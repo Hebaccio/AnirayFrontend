@@ -1,7 +1,7 @@
-import 'package:aniray_desktop/models/order/order_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/order/order_models.dart';
 import 'package:http/http.dart' as http;
-import 'package:aniray_desktop/providers/api_client.dart';
-import 'package:aniray_desktop/providers/generic_crud_provider.dart';
+import 'package:aniray_desktop/providers/generic_provider/api_client.dart';
+import 'package:aniray_desktop/providers/generic_provider/generic_crud_provider.dart';
 
 class OrderProvider
     extends

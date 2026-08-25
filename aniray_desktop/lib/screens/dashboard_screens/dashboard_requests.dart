@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:aniray_desktop/models/movie/movie_models.dart';
-import 'package:aniray_desktop/models/request/request_models.dart';
-import 'package:aniray_desktop/providers/api_result.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/request/request_models.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
 import 'package:aniray_desktop/providers/entity_providers/request_provider.dart';
-import 'package:aniray_desktop/requests/paged_result.dart';
-import 'package:aniray_desktop/theme/app_colors.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/paged_result/paged_result.dart';
+import 'package:aniray_desktop/helpers/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class DashboardRequestsScreen extends StatefulWidget {

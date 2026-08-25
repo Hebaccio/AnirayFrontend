@@ -1,7 +1,7 @@
-import 'package:aniray_desktop/models/movie/movie_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../basic_entities/basic_entities.dart';
+import '../../helper_r&m/basic_entities/basic_entities.dart';
 
 part 'request_models.g.dart';
 

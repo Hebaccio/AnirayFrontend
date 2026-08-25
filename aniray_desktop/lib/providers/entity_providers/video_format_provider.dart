@@ -1,7 +1,7 @@
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
 import 'package:http/http.dart' as http;
-import 'package:aniray_desktop/providers/api_client.dart';
-import 'package:aniray_desktop/providers/generic_crud_provider.dart';
+import 'package:aniray_desktop/providers/generic_provider/api_client.dart';
+import 'package:aniray_desktop/providers/generic_provider/generic_crud_provider.dart';
 
 class VideoFormatProvider
     extends

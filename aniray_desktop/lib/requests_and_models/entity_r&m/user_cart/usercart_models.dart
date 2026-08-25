@@ -1,4 +1,4 @@
-import 'package:aniray_desktop/models/bluray/bluray_models.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/bluray/bluray_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'usercart_models.g.dart';

@@ -1,6 +1,6 @@
-import 'package:aniray_desktop/models/movie/movie_models.dart';
-import 'package:aniray_desktop/providers/auth_provider.dart';
-import 'package:aniray_desktop/requests/auth_requests/auth_result.dart';
+import 'package:aniray_desktop/requests_and_models/entity_r&m/movie/movie_models.dart';
+import 'package:aniray_desktop/providers/auth_provider/auth_provider.dart';
+import 'package:aniray_desktop/requests_and_models/auth_r&m/auth_result.dart';
 import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_inventory.dart';
 import 'package:aniray_desktop/screens/dashboard_screens/dashboard_orders.dart';
@@ -11,7 +11,7 @@ import 'package:aniray_desktop/screens/other_screens/movie_edit_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/order_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/request_details_screen.dart';
 import 'package:aniray_desktop/screens/other_screens/user_edit_screen.dart';
-import 'package:aniray_desktop/theme/app_colors.dart';
+import 'package:aniray_desktop/helpers/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class MainSidebarWidget extends StatefulWidget {

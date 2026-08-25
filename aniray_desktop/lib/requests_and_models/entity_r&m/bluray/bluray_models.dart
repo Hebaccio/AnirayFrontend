@@ -1,5 +1,5 @@
 import 'package:aniray_desktop/helpers/date_only_converter.dart';
-import 'package:aniray_desktop/models/basic_entities/basic_entities.dart';
+import 'package:aniray_desktop/requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'bluray_models.g.dart';
