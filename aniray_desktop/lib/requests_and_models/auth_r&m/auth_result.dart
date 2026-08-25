@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthResult {
@@ -7,6 +8,15 @@ class AuthResult {
   static String? refreshToken;
   static DateTime? expiresAt;
   static String? role;
+
+  // ---------------------------------------------------------------------------
+  // SECURE STORAGE
+  // ---------------------------------------------------------------------------
+
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+  static const String _accessTokenKey = "accessToken";
+  static const String _refreshTokenKey = "refreshToken";
 
   // ---------------------------------------------------------------------------
   // AUTHENTICATION FAILURE STATE
@@ -45,6 +55,59 @@ class AuthResult {
             ?.toString();
 
     expiresAt = JwtDecoder.getExpirationDate(token);
+  }
+
+  // ---------------------------------------------------------------------------
+  // PERSISTENT AUTHENTICATION
+  // ---------------------------------------------------------------------------
+
+  static Future<void> saveTokens() async {
+    final currentAccessToken = accessToken;
+    final currentRefreshToken = refreshToken;
+
+    if (currentAccessToken == null || currentAccessToken.isEmpty) {
+      await _storage.delete(key: _accessTokenKey);
+    } else {
+      await _storage.write(key: _accessTokenKey, value: currentAccessToken);
+    }
+
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
+      await _storage.delete(key: _refreshTokenKey);
+    } else {
+      await _storage.write(key: _refreshTokenKey, value: currentRefreshToken);
+    }
+  }
+
+  static Future<bool> restoreAuthentication() async {
+    final storedAccessToken = await _storage.read(key: _accessTokenKey);
+
+    final storedRefreshToken = await _storage.read(key: _refreshTokenKey);
+
+    if (storedAccessToken == null ||
+        storedAccessToken.isEmpty ||
+        storedRefreshToken == null ||
+        storedRefreshToken.isEmpty) {
+      await clearPersistentAuthentication();
+      return false;
+    }
+
+    try {
+      setAccessToken(storedAccessToken);
+
+      refreshToken = storedRefreshToken;
+
+      return true;
+    } catch (_) {
+      await clearPersistentAuthentication();
+      clear();
+
+      return false;
+    }
+  }
+
+  static Future<void> clearPersistentAuthentication() async {
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
   }
 
   // ---------------------------------------------------------------------------
@@ -97,6 +160,11 @@ class AuthResult {
     refreshToken = null;
     expiresAt = null;
     role = null;
+  }
+
+  static Future<void> clearAuthentication() async {
+    clear();
+    await clearPersistentAuthentication();
   }
 }
 

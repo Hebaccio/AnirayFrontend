@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:aniray_desktop/requests_and_models/auth_r&m/auth_result.dart';
@@ -36,23 +35,12 @@ class AuthProvider {
       }),
     );
 
-    final data = jsonDecode(response.body);
-    if (response.statusCode < 299) {
-      AuthResult.resetAuthenticationFailureHandled();
+    final data = _decodeResponse(response);
 
-      AuthResult.twoFactorRequired = data["twoFactorRequired"];
-      AuthResult.userId = data["userId"];
-
-      AuthResult.setAccessToken(data["accessToken"]);
-
-      AuthResult.refreshToken = data["refreshToken"];
-
-      if (data["expiresAt"] != null) {
-        AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
-      }
-
-      return AuthResult();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
     }
+
     throw Exception(_extractErrorMessage(data));
   }
 
@@ -69,23 +57,10 @@ class AuthProvider {
       }),
     );
 
-    final data = jsonDecode(response.body);
+    final data = _decodeResponse(response);
 
-    if (response.statusCode < 299) {
-      AuthResult.resetAuthenticationFailureHandled();
-
-      AuthResult.twoFactorRequired = data["twoFactorRequired"];
-      AuthResult.userId = data["userId"];
-
-      AuthResult.setAccessToken(data["accessToken"]);
-
-      AuthResult.refreshToken = data["refreshToken"];
-
-      if (data["expiresAt"] != null) {
-        AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
-      }
-
-      return AuthResult();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
     }
 
     throw Exception(_extractErrorMessage(data));
@@ -104,23 +79,10 @@ class AuthProvider {
       }),
     );
 
-    final data = jsonDecode(response.body);
+    final data = _decodeResponse(response);
 
-    if (response.statusCode < 299) {
-      AuthResult.resetAuthenticationFailureHandled();
-
-      AuthResult.twoFactorRequired = data["twoFactorRequired"];
-      AuthResult.userId = data["userId"];
-
-      AuthResult.setAccessToken(data["accessToken"]);
-
-      AuthResult.refreshToken = data["refreshToken"];
-
-      if (data["expiresAt"] != null) {
-        AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
-      }
-
-      return AuthResult();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
     }
 
     throw Exception(_extractErrorMessage(data));
@@ -131,35 +93,24 @@ class AuthProvider {
 
     final response = await http.post(uri);
 
-    final data = jsonDecode(response.body);
+    final data = _decodeResponse(response);
 
-    if (response.statusCode < 299) {
-      AuthResult.twoFactorRequired = data["twoFactorRequired"];
-      AuthResult.userId = data["userId"];
-
-      AuthResult.setAccessToken(data["accessToken"]);
-
-      AuthResult.refreshToken = data["refreshToken"];
-
-      if (data["expiresAt"] != null) {
-        AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
-      }
-
-      return AuthResult();
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
     }
 
     throw Exception(_extractErrorMessage(data));
   }
 
   Future<AuthResult> refresh() async {
-    final accessToken = AuthResult.accessToken;
-    final refreshToken = AuthResult.refreshToken;
+    final currentAccessToken = AuthResult.accessToken;
+    final currentRefreshToken = AuthResult.refreshToken;
 
-    if (accessToken == null || accessToken.isEmpty) {
+    if (currentAccessToken == null || currentAccessToken.isEmpty) {
       throw Exception("No access token available for refresh.");
     }
 
-    if (refreshToken == null || refreshToken.isEmpty) {
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
       throw Exception("No refresh token available.");
     }
 
@@ -169,18 +120,12 @@ class AuthProvider {
       uri,
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "accessToken": accessToken,
-        "refreshToken": refreshToken,
+        "accessToken": currentAccessToken,
+        "refreshToken": currentRefreshToken,
       }),
     );
 
-    dynamic data;
-
-    try {
-      data = jsonDecode(response.body);
-    } catch (_) {
-      data = null;
-    }
+    final data = _decodeResponse(response);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (data is! Map<String, dynamic>) {
@@ -199,16 +144,14 @@ class AuthProvider {
       }
 
       AuthResult.resetAuthenticationFailureHandled();
+
       AuthResult.twoFactorRequired = data["twoFactorRequired"];
       AuthResult.userId = data["userId"];
 
       AuthResult.setAccessToken(newAccessToken);
-
       AuthResult.refreshToken = newRefreshToken;
 
-      if (data["expiresAt"] != null) {
-        AuthResult.expiresAt = DateTime.parse(data["expiresAt"]);
-      }
+      await AuthResult.saveTokens();
 
       return AuthResult();
     }
@@ -216,11 +159,33 @@ class AuthProvider {
     throw Exception(_extractErrorMessage(data));
   }
 
-  Future<void> logout() async {
-    final refreshToken = AuthResult.refreshToken;
+  Future<bool> restoreSession() async {
+    final restored = await AuthResult.restoreAuthentication();
 
-    if (refreshToken == null || refreshToken.isEmpty) {
-      AuthResult.clear();
+    if (!restored) {
+      return false;
+    }
+
+    // Access token is still valid.
+    if (!AuthResult.isAccessTokenExpired) {
+      return true;
+    }
+
+    // Access token expired, attempt refresh.
+    try {
+      await refresh();
+      return true;
+    } catch (_) {
+      await AuthResult.clearAuthentication();
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    final currentRefreshToken = AuthResult.refreshToken;
+
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
+      await AuthResult.clearAuthentication();
       return;
     }
 
@@ -229,11 +194,11 @@ class AuthProvider {
     final response = await http.post(
       uri,
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"refreshToken": refreshToken}),
+      body: jsonEncode({"refreshToken": currentRefreshToken}),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      AuthResult.clear();
+      await AuthResult.clearAuthentication();
       return;
     }
 
@@ -246,11 +211,13 @@ class AuthProvider {
         if (data["message"] != null) {
           errorMessage = data["message"].toString();
         } else if (data["errors"] != null) {
-          final errors = data["errors"] as Map<String, dynamic>;
+          final errors = data["errors"];
 
-          errorMessage = errors.values
-              .expand((e) => e is List ? e : [e])
-              .join("\n");
+          if (errors is Map<String, dynamic>) {
+            errorMessage = errors.values
+                .expand((e) => e is List ? e : [e])
+                .join("\n");
+          }
         }
       }
     } catch (_) {
@@ -260,8 +227,39 @@ class AuthProvider {
     throw Exception(errorMessage);
   }
 
+  Future<AuthResult> _processAuthenticationResponse(dynamic data) async {
+    if (data is! Map<String, dynamic>) {
+      throw Exception("Invalid authentication response from server.");
+    }
+
+    AuthResult.resetAuthenticationFailureHandled();
+
+    AuthResult.twoFactorRequired = data["twoFactorRequired"];
+    AuthResult.userId = data["userId"];
+
+    AuthResult.setAccessToken(data["accessToken"]?.toString());
+
+    AuthResult.refreshToken = data["refreshToken"]?.toString();
+
+    await AuthResult.saveTokens();
+
+    return AuthResult();
+  }
+
+  dynamic _decodeResponse(http.Response response) {
+    if (response.body.isEmpty) {
+      return null;
+    }
+
+    try {
+      return jsonDecode(response.body);
+    } catch (_) {
+      return null;
+    }
+  }
+
   String _extractErrorMessage(dynamic data) {
-    String errorMessage = "Something went wrong.";
+    const defaultMessage = "Something went wrong.";
 
     if (data is Map<String, dynamic>) {
       if (data["message"] != null) {
@@ -277,6 +275,6 @@ class AuthProvider {
       }
     }
 
-    return errorMessage;
+    return defaultMessage;
   }
 }

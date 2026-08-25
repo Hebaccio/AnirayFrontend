@@ -40,6 +40,58 @@ class _LoginScreenState extends State<LoginScreen> {
     r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$/%^&*(),.?":{}|<>]).{6,}$',
   );
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Show the session-expired dialog after the LoginScreen
+    // has been inserted into the widget tree.
+    if (widget.sessionExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppColors.backgroundTertiary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.lock_clock_outlined, color: AppColors.textPrimary),
+                SizedBox(width: 10),
+                Text(
+                  "Session expired",
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: const Text(
+              "Your session has expired. Please log in again.",
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  "OK",
+                  style: TextStyle(color: AppColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+  }
+
   bool _validate() {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -169,57 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
-
-                    // ---------------------------------------------------------
-                    // SESSION EXPIRED MESSAGE
-                    // ---------------------------------------------------------
-                    if (widget.sessionExpired) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundTertiary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Column(
-                          children: [
-                            Icon(
-                              Icons.lock_clock_outlined,
-                              color: AppColors.textPrimary,
-                              size: 28,
-                            ),
-
-                            SizedBox(height: 8),
-
-                            Text(
-                              "Session expired",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-
-                            SizedBox(height: 4),
-
-                            Text(
-                              "Your session has expired. Please log in again.",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 32),
 
                     TextField(
                       controller: _emailController,

@@ -10,32 +10,28 @@ class ApiClient {
 
   final AuthProvider _authProvider;
 
-  /// Called when the access token can no longer be refreshed.
+  /// GLOBAL authentication failure callback.
   ///
-  /// The application/root widget can use this callback to:
-  /// - clear the current screen
-  /// - navigate to LoginScreen
-  /// - show a "Session expired" message
-  final void Function()? onAuthenticationFailed;
+  /// This is static because multiple ApiClient instances can exist.
+  ///
+  /// The application configures this once from main.dart.
+  static Future<void> Function()? _onAuthenticationFailed;
 
   /// GLOBAL refresh lock.
   ///
   /// This must be static because multiple ApiClient instances can exist.
-  ///
-  /// Without this being static, this situation can happen:
-  ///
-  /// ApiClient A -> refresh
-  /// ApiClient B -> refresh
-  /// ApiClient C -> refresh
-  ///
-  /// Each ApiClient would have its own lock.
   static Future<void>? _refreshFuture;
 
-  ApiClient(
-    this._client, {
-    AuthProvider? authProvider,
-    this.onAuthenticationFailed,
-  }) : _authProvider = authProvider ?? AuthProvider();
+  ApiClient(this._client, {AuthProvider? authProvider})
+    : _authProvider = authProvider ?? AuthProvider();
+
+  // ---------------------------------------------------------------------------
+  // GLOBAL AUTHENTICATION FAILURE HANDLER
+  // ---------------------------------------------------------------------------
+
+  static void setAuthenticationFailureHandler(Future<void> Function() handler) {
+    _onAuthenticationFailed = handler;
+  }
 
   // ---------------------------------------------------------------------------
   // HEADERS
@@ -155,6 +151,7 @@ class ApiClient {
   // ---------------------------------------------------------------------------
   // AUTHENTICATION HANDLING
   // ---------------------------------------------------------------------------
+
   Future<ApiResponse<String>> _executeWithAuthentication({
     required Future<http.Response> Function() request,
   }) async {
@@ -169,7 +166,7 @@ class ApiClient {
       try {
         await _refreshAccessToken();
       } catch (_) {
-        _handleAuthenticationFailure();
+        await _handleAuthenticationFailure();
 
         return ApiResponse<String>(statusCode: 401, body: '');
       }
@@ -217,15 +214,10 @@ class ApiClient {
     if (tokenUsedForRequest != null &&
         currentToken != null &&
         tokenUsedForRequest != currentToken) {
-      // Another request already refreshed the token.
-      //
-      // Do NOT refresh again.
-      // Simply retry with the new token.
-
       final retryResponse = await request();
 
       if (retryResponse.statusCode == 401) {
-        _handleAuthenticationFailure();
+        await _handleAuthenticationFailure();
       }
 
       return ApiResponse<String>(
@@ -244,7 +236,7 @@ class ApiClient {
     final refreshToken = AuthResult.refreshToken;
 
     if (refreshToken == null || refreshToken.isEmpty) {
-      _handleAuthenticationFailure();
+      await _handleAuthenticationFailure();
 
       return ApiResponse<String>(statusCode: 401, body: response.body);
     }
@@ -253,15 +245,12 @@ class ApiClient {
     // STEP 7
     //
     // Refresh.
-    //
-    // _refreshAccessToken() guarantees that only ONE refresh operation
-    // exists globally.
     // -------------------------------------------------------------------------
 
     try {
       await _refreshAccessToken();
     } catch (_) {
-      _handleAuthenticationFailure();
+      await _handleAuthenticationFailure();
 
       return ApiResponse<String>(statusCode: 401, body: response.body);
     }
@@ -278,11 +267,10 @@ class ApiClient {
     // STEP 9
     //
     // If the new token also gets 401, authentication is dead.
-    // Do NOT refresh again.
     // -------------------------------------------------------------------------
 
     if (retryResponse.statusCode == 401) {
-      _handleAuthenticationFailure();
+      await _handleAuthenticationFailure();
     }
 
     return ApiResponse<String>(
@@ -290,12 +278,12 @@ class ApiClient {
       body: retryResponse.body,
     );
   }
+
   // ---------------------------------------------------------------------------
   // REFRESH ACCESS TOKEN
   // ---------------------------------------------------------------------------
 
   Future<void> _refreshAccessToken() async {
-    // If another ApiClient is already refreshing, wait for it.
     final existingRefresh = _refreshFuture;
 
     if (existingRefresh != null) {
@@ -319,7 +307,6 @@ class ApiClient {
 
       rethrow;
     } finally {
-      // Only clear the lock belonging to this refresh operation.
       if (identical(_refreshFuture, refreshCompleter.future)) {
         _refreshFuture = null;
       }
@@ -330,12 +317,11 @@ class ApiClient {
   // AUTHENTICATION FAILURE
   // ---------------------------------------------------------------------------
 
-  void _handleAuthenticationFailure() {
+  static Future<void> _handleAuthenticationFailure() async {
     // Multiple requests can discover the authentication failure
     // simultaneously.
     //
-    // Only the first one should clear authentication and navigate
-    // to LoginScreen.
+    // Only the first one should clear authentication and navigate.
 
     if (AuthResult.authenticationFailureHandled) {
       return;
@@ -343,8 +329,11 @@ class ApiClient {
 
     AuthResult.markAuthenticationFailureHandled();
 
-    AuthResult.clear();
+    // IMPORTANT:
+    // Clear both RAM AND secure storage.
+    await AuthResult.clearAuthentication();
 
-    onAuthenticationFailed?.call();
+    // Tell the application to go to LoginScreen.
+    await _onAuthenticationFailed?.call();
   }
 }
