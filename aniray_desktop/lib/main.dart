@@ -3,9 +3,24 @@ import 'package:aniray_desktop/providers/generic_provider/api_client.dart';
 import 'package:aniray_desktop/screens/auth_screens/login_screen.dart';
 import 'package:aniray_desktop/widgets/main_sidebar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize desktop window manager.
+  await windowManager.ensureInitialized();
+
+  const windowOptions = WindowOptions(
+    minimumSize: Size(1200, 800),
+    size: Size(1440, 900),
+    center: true,
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
 
   final authProvider = AuthProvider();
 
