@@ -1,0 +1,39 @@
+import 'package:http/http.dart' as http;
+import '../../requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
+import '../generic_provider/api_client.dart';
+import '../generic_provider/generic_crud_provider.dart';
+
+class GenreProvider
+    extends
+        GenericCrudProvider<
+          BaseClassMU,
+          BaseClassME,
+          BaseClassSOU,
+          BaseClassSOE,
+          BaseClassIRU,
+          BaseClassIRE,
+          BaseClassURU,
+          BaseClassURE
+        > {
+  GenreProvider()
+    : super(
+        endpoint: 'Genre',
+        apiClient: ApiClient(http.Client()),
+
+        // Models
+        modelUserFromJson: BaseClassMU.fromJson,
+        modelEmployeeFromJson: BaseClassME.fromJson,
+
+        // Searches
+        searchUserToJson: (value) => value.toJson(),
+        searchEmployeeToJson: (value) => value.toJson(),
+
+        // Inserts
+        insertUserToJson: (value) => value.toJson(),
+        insertEmployeeToJson: (value) => value.toJson(),
+
+        // Updates
+        updateUserToJson: (value) => value.toJson(),
+        updateEmployeeToJson: (value) => value.toJson(),
+      );
+}
