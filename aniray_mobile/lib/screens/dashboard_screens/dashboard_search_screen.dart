@@ -11,9 +11,14 @@ import '../../requests_and_models/helper_r&m/basic_entities/basic_entities.dart'
 import '../../requests_and_models/helper_r&m/paged_result/paged_result.dart';
 
 class DashboardSearchScreen extends StatefulWidget {
-  const DashboardSearchScreen({super.key, required this.title});
+  const DashboardSearchScreen({
+    super.key,
+    required this.title,
+    this.onMovieSelected,
+  });
 
   final String title;
+  final void Function(MovieMU movie)? onMovieSelected;
 
   @override
   State<DashboardSearchScreen> createState() => _DashboardSearchScreenState();
@@ -936,7 +941,7 @@ class _DashboardSearchScreenState extends State<DashboardSearchScreen> {
   Widget _movieCard(MovieMU movie) {
     return GestureDetector(
       onTap: () {
-        // MovieScreen will be connected here later.
+        widget.onMovieSelected?.call(movie);
       },
       child: Container(
         width: double.infinity,

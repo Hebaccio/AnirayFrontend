@@ -1,14 +1,39 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../../helpers/date_only_converter.dart';
 import '../../helper_r&m/basic_entities/basic_entities.dart';
+import '../helper_requests/base_class_short_mu.dart';
 part 'bluray_models.g.dart';
 
 @JsonSerializable()
 class BluRayMU {
   final int id;
   final String title;
+  final String image;
+  final String description;
+  @DateOnlyConverter()
+  final DateTime releaseDate;
+  final BaseClassShortMU videoFormat;
+  final BaseClassShortMU audioFormat;
+  final int discCount;
+  final int runtime;
+  final int inStock;
+  final String subtitleLanguage;
+  final double price;
 
-  const BluRayMU({required this.id, required this.title});
+  const BluRayMU({
+    required this.id,
+    required this.image,
+    required this.title,
+    required this.description,
+    required this.releaseDate,
+    required this.videoFormat,
+    required this.audioFormat,
+    required this.discCount,
+    required this.runtime,
+    required this.inStock,
+    required this.subtitleLanguage,
+    required this.price,
+  });
 
   factory BluRayMU.fromJson(Map<String, dynamic> json) =>
       _$BluRayMUFromJson(json);

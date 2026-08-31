@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../helpers/app_colors.dart';
 import '../providers/auth_provider/auth_provider.dart';
 import '../requests_and_models/auth_r&m/auth_result.dart';
+import '../requests_and_models/entity_r&m/movie/movie_models.dart';
 import '../screens/auth_screens/login_screen.dart';
 import '../screens/dashboard_screens/dashboard_cart_screen.dart';
 import '../screens/dashboard_screens/dashboard_home_screen.dart';
 import '../screens/dashboard_screens/dashboard_profile_screen.dart';
 import '../screens/dashboard_screens/dashboard_requests_screen.dart';
 import '../screens/dashboard_screens/dashboard_search_screen.dart';
+import '../screens/other_screens/movie_screen.dart';
+import '../screens/other_screens/profile_settings_screen.dart';
 
 class MainNavbarWidget extends StatefulWidget {
   const MainNavbarWidget({super.key});
@@ -28,14 +32,23 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
   List<Widget> get _pages => [
     const DashboardHomeScreen(title: "Home"),
 
-    const DashboardSearchScreen(title: "Search"),
+    DashboardSearchScreen(title: "Search", onMovieSelected: openMovie),
 
     const DashboardCartScreen(title: "Cart"),
 
     const DashboardRequestsScreen(title: "Requests"),
 
-    const DashboardProfileScreen(title: "Profile"),
+    DashboardProfileScreen(
+      title: "Profile",
+      onProfileSettings: openProfileSettings,
+    ),
   ];
+
+  // ---------------------------------------------------------------------------
+  // DETAILS PAGE
+  // ---------------------------------------------------------------------------
+
+  Widget? _detailsPage;
 
   // ---------------------------------------------------------------------------
   // BUILD
@@ -46,10 +59,47 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
     return Scaffold(
       backgroundColor: const Color(0xFF08111F),
 
-      body: IndexedStack(index: _selectedIndex, children: _pages),
+      body: _detailsPage ?? _pages[_selectedIndex],
 
       bottomNavigationBar: _buildNavbar(),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // OPEN PROFILE SETTINGS
+  // ---------------------------------------------------------------------------
+
+  void openProfileSettings() {
+    setState(() {
+      _detailsPage = ProfileSettingsScreen(
+        title: "ProfileSettings",
+        onBack: _closeDetailsPage,
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // OPEN MOVIE
+  // ---------------------------------------------------------------------------
+
+  void openMovie(MovieMU movie) {
+    setState(() {
+      _detailsPage = MovieScreen(
+        title: movie.title,
+        movieId: movie.id,
+        onBack: _closeDetailsPage,
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CLOSE DETAILS PAGE
+  // ---------------------------------------------------------------------------
+
+  void _closeDetailsPage() {
+    setState(() {
+      _detailsPage = null;
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -125,17 +175,14 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
     required String text,
     required int index,
   }) {
-    final bool isSelected = _selectedIndex == index;
+    final bool isSelected = _detailsPage == null && _selectedIndex == index;
 
     return Expanded(
       child: InkWell(
         onTap: () {
-          if (_selectedIndex == index) {
-            return;
-          }
-
           setState(() {
             _selectedIndex = index;
+            _detailsPage = null;
           });
         },
         child: AnimatedContainer(

@@ -1,5 +1,42 @@
 /*
+---------------------------------
+FINISHED SCREENS:
 
+Search Screen
+Profile Screen
+---------------------------------
+SCREENS NEED WORK:
 
+Requests Screen
+Movie Screen
+Profile Settings Screen
+Login Screen
+---------------------------------
+UNSTARTED SCREENS:
+
+BluRay Screen
+2FA Screen 
+Cart Screen
+Order Screen
+Checkout Screen
+Payment Screen
+Home Screen
+---------------------------------
+SCREENS NEED WORK (Details):
+
+Requests Screen:
+    Add Validations
+
+Movie Screen:
+    Add to Favorites
+    Description <br> problems
+    Fetch Blurays already in carts
+
+Profile Settings Screen:
+    Add Validation
+    Password Changing
+
+Login Screen:
+    Connect to 2FA Screen
 
 */

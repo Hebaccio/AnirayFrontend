@@ -6,12 +6,40 @@ part of 'bluray_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-BluRayMU _$BluRayMUFromJson(Map<String, dynamic> json) =>
-    BluRayMU(id: (json['id'] as num).toInt(), title: json['title'] as String);
+BluRayMU _$BluRayMUFromJson(Map<String, dynamic> json) => BluRayMU(
+  id: (json['id'] as num).toInt(),
+  image: json['image'] as String,
+  title: json['title'] as String,
+  description: json['description'] as String,
+  releaseDate: const DateOnlyConverter().fromJson(
+    json['releaseDate'] as String,
+  ),
+  videoFormat: BaseClassShortMU.fromJson(
+    json['videoFormat'] as Map<String, dynamic>,
+  ),
+  audioFormat: BaseClassShortMU.fromJson(
+    json['audioFormat'] as Map<String, dynamic>,
+  ),
+  discCount: (json['discCount'] as num).toInt(),
+  runtime: (json['runtime'] as num).toInt(),
+  inStock: (json['inStock'] as num).toInt(),
+  subtitleLanguage: json['subtitleLanguage'] as String,
+  price: (json['price'] as num).toDouble(),
+);
 
 Map<String, dynamic> _$BluRayMUToJson(BluRayMU instance) => <String, dynamic>{
   'id': instance.id,
   'title': instance.title,
+  'image': instance.image,
+  'description': instance.description,
+  'releaseDate': const DateOnlyConverter().toJson(instance.releaseDate),
+  'videoFormat': instance.videoFormat,
+  'audioFormat': instance.audioFormat,
+  'discCount': instance.discCount,
+  'runtime': instance.runtime,
+  'inStock': instance.inStock,
+  'subtitleLanguage': instance.subtitleLanguage,
+  'price': instance.price,
 };
 
 BluRayME _$BluRayMEFromJson(Map<String, dynamic> json) => BluRayME(

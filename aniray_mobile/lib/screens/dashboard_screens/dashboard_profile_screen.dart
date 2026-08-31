@@ -3,12 +3,12 @@ import '../../helpers/app_colors.dart';
 import '../../providers/entity_providers/user_provider.dart';
 import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/entity_r&m/user/user_models.dart';
-import '../other_screens/profile_settings_screen.dart';
 
 class DashboardProfileScreen extends StatefulWidget {
-  const DashboardProfileScreen({super.key, this.title});
+  const DashboardProfileScreen({super.key, this.title, this.onProfileSettings});
 
   final String? title;
+  final VoidCallback? onProfileSettings;
 
   @override
   State<DashboardProfileScreen> createState() => _DashboardProfileScreenState();
@@ -72,12 +72,7 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   // ---------------------------------------------------------------------------
 
   void _openProfileSettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ProfileSettingsScreen(title: ""),
-      ),
-    );
+    widget.onProfileSettings?.call();
   }
 
   // ---------------------------------------------------------------------------
