@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../helpers/app_colors.dart';
-import '../providers/auth_provider/auth_provider.dart';
-import '../requests_and_models/auth_r&m/auth_result.dart';
 import '../requests_and_models/entity_r&m/movie/movie_models.dart';
-import '../screens/auth_screens/login_screen.dart';
 import '../screens/dashboard_screens/dashboard_cart_screen.dart';
 import '../screens/dashboard_screens/dashboard_home_screen.dart';
 import '../screens/dashboard_screens/dashboard_profile_screen.dart';
@@ -215,42 +212,6 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
           ),
         ),
       ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // LOGOUT
-  // ---------------------------------------------------------------------------
-
-  Future<void> _logout() async {
-    if (_isLoggingOut) {
-      return;
-    }
-
-    setState(() {
-      _isLoggingOut = true;
-    });
-
-    try {
-      final AuthProvider authProvider = AuthProvider();
-
-      await authProvider.logout();
-    } catch (_) {
-      // Even if backend logout fails, local authentication
-      // state is still cleared.
-    } finally {
-      AuthResult.clear();
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(title: "Login"),
-      ),
-      (route) => false,
     );
   }
 }

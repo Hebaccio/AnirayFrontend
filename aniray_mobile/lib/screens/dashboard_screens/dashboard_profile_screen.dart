@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../helpers/app_colors.dart';
-import '../../providers/entity_providers/user_favorites.dart';
 import '../../providers/entity_providers/user_provider.dart';
 import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/entity_r&m/user/user_models.dart';
