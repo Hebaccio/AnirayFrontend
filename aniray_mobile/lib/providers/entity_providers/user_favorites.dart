@@ -17,7 +17,7 @@ class UserFavoriteProvider
         > {
   UserFavoriteProvider()
     : super(
-        endpoint: 'UserFavorite',
+        endpoint: 'UserFavorites',
         apiClient: ApiClient(http.Client()),
 
         // Models

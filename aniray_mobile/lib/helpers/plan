@@ -3,10 +3,10 @@
 FINISHED SCREENS:
 
 Search Screen
-Profile Screen
 ---------------------------------
 SCREENS NEED WORK:
 
+Profile Screen
 Requests Screen
 Movie Screen
 Profile Settings Screen
@@ -14,8 +14,8 @@ Login Screen
 ---------------------------------
 UNSTARTED SCREENS:
 
-BluRay Screen
 2FA Screen 
+BluRay Screen
 Cart Screen
 Order Screen
 Checkout Screen
@@ -24,19 +24,20 @@ Home Screen
 ---------------------------------
 SCREENS NEED WORK (Details):
 
-Requests Screen:
-    Add Validations
+Login Screen:
+    Connect to 2FA Screen
 
 Movie Screen:
     Add to Favorites
     Description <br> problems
     Fetch Blurays already in carts
 
+Requests Screen:
+    Add Validations
+
 Profile Settings Screen:
     Add Validation
     Password Changing
 
-Login Screen:
-    Connect to 2FA Screen
 
 */
