@@ -1,6 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../helpers/app_colors.dart';
+import '../../helpers/validation_helper.dart';
 import '../../providers/auth_provider/auth_provider.dart';
 import '../../providers/entity_providers/gender_provider.dart';
 import '../../providers/entity_providers/user_provider.dart';
@@ -24,6 +27,13 @@ class ProfileSettingsScreen extends StatefulWidget {
 }
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
+  // ---------------------------------------------------------------------------
+  // FORM
+  // ---------------------------------------------------------------------------
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _passwordFormKey = GlobalKey<FormState>();
+
   // ---------------------------------------------------------------------------
   // PROVIDERS
   // ---------------------------------------------------------------------------
@@ -389,6 +399,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     setState(() {
       _birthdayController.text = _formatDate(pickedDate);
     });
+
+    // Re-run birthday validation immediately after selecting a date.
+    _formKey.currentState?.validate();
   }
 
   // ---------------------------------------------------------------------------
@@ -511,106 +524,169 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       title: 'Personal Information',
       icon: Icons.person_outline,
       children: [
-        _buildProfilePicturePreview(),
+        Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildProfilePicturePreview(),
 
-        const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-        _buildTextField(
-          controller: _profilePictureController,
-          label: 'Profile Picture URL',
-          hint: 'https://...',
-          icon: Icons.image_outlined,
-          keyboardType: TextInputType.url,
-        ),
+              _buildProfilePictureField(),
 
-        const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-        _buildTextField(
-          controller: _nameController,
-          label: 'First Name',
-          hint: 'Enter your first name',
-          icon: Icons.badge_outlined,
-          keyboardType: TextInputType.name,
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildTextField(
-          controller: _lastNameController,
-          label: 'Last Name',
-          hint: 'Enter your last name',
-          icon: Icons.badge_outlined,
-          keyboardType: TextInputType.name,
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildTextField(
-          controller: _usernameController,
-          label: 'Username',
-          hint: 'Enter your username',
-          icon: Icons.alternate_email,
-          keyboardType: TextInputType.text,
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildTextField(
-          controller: _emailController,
-          label: 'Email',
-          hint: 'Enter your email',
-          icon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildBirthdayField(),
-
-        const SizedBox(height: 14),
-
-        _buildGenderDropdown(),
-
-        const SizedBox(height: 20),
-
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: _isSavingPersonalInformation
-                  ? null
-                  : _savePersonalInformation,
-              icon: _isSavingPersonalInformation
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textPrimary,
-                      ),
-                    )
-                  : const Icon(Icons.save_outlined),
-              label: Text(
-                _isSavingPersonalInformation
-                    ? 'Saving...'
-                    : 'Save Personal Information',
+              _buildTextField(
+                controller: _nameController,
+                label: 'First Name',
+                hint: 'Enter your first name',
+                icon: Icons.badge_outlined,
+                keyboardType: TextInputType.name,
+                validator: (value) {
+                  return ValidationHelper.validateStringLength(
+                    value: value,
+                    minLength: 2,
+                    maxLength: 50,
+                    attributeName: 'First Name',
+                    nullsAllowed: false,
+                  );
+                },
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.backgroundTertiary,
-                foregroundColor: AppColors.textPrimary,
-                disabledBackgroundColor: AppColors.backgroundTertiary
-                    .withOpacity(0.5),
-                disabledForegroundColor: AppColors.textPrimary.withOpacity(0.6),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+
+              const SizedBox(height: 14),
+
+              _buildTextField(
+                controller: _lastNameController,
+                label: 'Last Name',
+                hint: 'Enter your last name',
+                icon: Icons.badge_outlined,
+                keyboardType: TextInputType.name,
+                validator: (value) {
+                  return ValidationHelper.validateStringLength(
+                    value: value,
+                    minLength: 2,
+                    maxLength: 50,
+                    attributeName: 'Last Name',
+                    nullsAllowed: false,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              _buildTextField(
+                controller: _usernameController,
+                label: 'Username',
+                hint: 'Enter your username',
+                icon: Icons.alternate_email,
+                keyboardType: TextInputType.text,
+                validator: (value) {
+                  return ValidationHelper.validateStringLength(
+                    value: value,
+                    minLength: 3,
+                    maxLength: 30,
+                    attributeName: 'Username',
+                    nullsAllowed: false,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              _buildTextField(
+                controller: _emailController,
+                label: 'Email',
+                hint: 'Enter your email',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  return ValidationHelper.validateEmailRegex(
+                    value: value,
+                    attributeName: 'Email',
+                    nullsAllowed: false,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              _buildBirthdayField(),
+
+              const SizedBox(height: 14),
+
+              _buildGenderDropdown(),
+
+              const SizedBox(height: 20),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSavingPersonalInformation
+                        ? null
+                        : _savePersonalInformation,
+                    icon: _isSavingPersonalInformation
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.textPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.save_outlined),
+                    label: Text(
+                      _isSavingPersonalInformation
+                          ? 'Saving...'
+                          : 'Save Personal Information',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.backgroundTertiary,
+                      foregroundColor: AppColors.textPrimary,
+                      disabledBackgroundColor: AppColors.backgroundTertiary
+                          .withOpacity(0.5),
+                      disabledForegroundColor: AppColors.textPrimary
+                          .withOpacity(0.6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // PROFILE PICTURE FIELD
+  // ---------------------------------------------------------------------------
+
+  Widget _buildProfilePictureField() {
+    return TextFormField(
+      controller: _profilePictureController,
+      keyboardType: TextInputType.url,
+      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      validator: (value) {
+        return ValidationHelper.validateStringLength(
+          value: value,
+          minLength: 10,
+          maxLength: 5000,
+          attributeName: 'Profile Picture URL',
+          nullsAllowed: false,
+        );
+      },
+      decoration: _inputDecoration(
+        label: 'Profile Picture URL',
+        hint: 'https://...',
+        icon: Icons.image_outlined,
+      ),
     );
   }
 
@@ -662,11 +738,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildBirthdayField() {
-    return TextField(
+    return TextFormField(
       controller: _birthdayController,
       readOnly: true,
       onTap: _selectBirthday,
       style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      validator: (value) {
+        final date = _parseDate(value ?? '');
+
+        return ValidationHelper.validateDate(
+          dateToCheck: date,
+          minDate: DateTime(1900),
+          maxDate: DateTime.now(),
+          attributeName: 'Birthday',
+          nullsAllowed: false,
+        );
+      },
       decoration:
           _inputDecoration(
             label: 'Birthday',
@@ -740,6 +827,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       value: validSelectedGender,
       dropdownColor: AppColors.backgroundSecondary,
       style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Gender cannot be empty!';
+        }
+
+        return null;
+      },
       decoration: _inputDecoration(
         label: 'Gender',
         hint: 'Select your gender',
@@ -759,6 +853,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         setState(() {
           _selectedGender = value;
         });
+
+        // Immediately update the validation state if the user
+        // previously attempted to save with an invalid gender.
+        _formKey.currentState?.validate();
       },
     );
   }
@@ -927,81 +1025,129 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // SECURITY
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // SECURITY
+  // ---------------------------------------------------------------------------
+
   Widget _buildSecuritySection() {
     return _buildSectionCard(
       title: 'Security',
       icon: Icons.lock_outline,
       children: [
-        _buildPasswordField(
-          controller: _currentPasswordController,
-          label: 'Current Password',
-          obscureText: _obscureCurrentPassword,
-          onToggleVisibility: () {
-            setState(() {
-              _obscureCurrentPassword = !_obscureCurrentPassword;
-            });
-          },
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildPasswordField(
-          controller: _newPasswordController,
-          label: 'New Password',
-          obscureText: _obscureNewPassword,
-          onToggleVisibility: () {
-            setState(() {
-              _obscureNewPassword = !_obscureNewPassword;
-            });
-          },
-        ),
-
-        const SizedBox(height: 14),
-
-        _buildPasswordField(
-          controller: _repeatNewPasswordController,
-          label: 'Repeat New Password',
-          obscureText: _obscureRepeatNewPassword,
-          onToggleVisibility: () {
-            setState(() {
-              _obscureRepeatNewPassword = !_obscureRepeatNewPassword;
-            });
-          },
-        ),
-
-        const SizedBox(height: 20),
-
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: _isChangingPassword ? null : _changePassword,
-              icon: _isChangingPassword
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textPrimary,
-                      ),
-                    )
-                  : const Icon(Icons.lock_reset_outlined),
-              label: Text(
-                _isChangingPassword ? 'Changing...' : 'Change Password',
+        Form(
+          key: _passwordFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildPasswordField(
+                controller: _currentPasswordController,
+                label: 'Current Password',
+                obscureText: _obscureCurrentPassword,
+                onToggleVisibility: () {
+                  setState(() {
+                    _obscureCurrentPassword = !_obscureCurrentPassword;
+                  });
+                },
+                validator: (value) {
+                  return ValidationHelper.validatePasswordRegex(
+                    value: value,
+                    minLength: 1,
+                    maxLength: 100,
+                    attributeName: 'Current Password',
+                    nullsAllowed: false,
+                  );
+                },
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.backgroundTertiary,
-                foregroundColor: AppColors.textPrimary,
-                disabledBackgroundColor: AppColors.backgroundTertiary
-                    .withOpacity(0.5),
-                disabledForegroundColor: AppColors.textPrimary.withOpacity(0.6),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+
+              const SizedBox(height: 14),
+
+              _buildPasswordField(
+                controller: _newPasswordController,
+                label: 'New Password',
+                obscureText: _obscureNewPassword,
+                onToggleVisibility: () {
+                  setState(() {
+                    _obscureNewPassword = !_obscureNewPassword;
+                  });
+                },
+                validator: (value) {
+                  return ValidationHelper.validatePasswordRegex(
+                    value: value,
+                    minLength: 8,
+                    maxLength: 100,
+                    attributeName: 'New Password',
+                    nullsAllowed: false,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              _buildPasswordField(
+                controller: _repeatNewPasswordController,
+                label: 'Repeat New Password',
+                obscureText: _obscureRepeatNewPassword,
+                onToggleVisibility: () {
+                  setState(() {
+                    _obscureRepeatNewPassword = !_obscureRepeatNewPassword;
+                  });
+                },
+                validator: (value) {
+                  final lengthValidation =
+                      ValidationHelper.validatePasswordMatch(
+                        password: _newPasswordController.text,
+                        repeatedPassword: _repeatNewPasswordController.text,
+                      );
+
+                  if (lengthValidation != null) {
+                    return lengthValidation;
+                  }
+
+                  if (value != _newPasswordController.text) {
+                    return 'Passwords do not match!';
+                  }
+
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _isChangingPassword ? null : _changePassword,
+                    icon: _isChangingPassword
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.textPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.lock_reset_outlined),
+                    label: Text(
+                      _isChangingPassword ? 'Changing...' : 'Change Password',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.backgroundTertiary,
+                      foregroundColor: AppColors.textPrimary,
+                      disabledBackgroundColor: AppColors.backgroundTertiary
+                          .withOpacity(0.5),
+                      disabledForegroundColor: AppColors.textPrimary
+                          .withOpacity(0.6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
 
@@ -1034,11 +1180,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     required String label,
     required bool obscureText,
     required VoidCallback onToggleVisibility,
+    required String? Function(String?) validator,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      validator: validator,
       decoration:
           _inputDecoration(
             label: label,
@@ -1181,12 +1329,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    required String? Function(String?) validator,
     TextInputType? keyboardType,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      validator: validator,
       decoration: _inputDecoration(label: label, hint: hint, icon: icon),
     );
   }
@@ -1208,20 +1358,42 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
       filled: true,
       fillColor: AppColors.backgroundPrimary.withOpacity(0.35),
+
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
+
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
           color: AppColors.backgroundTertiary.withOpacity(0.25),
         ),
       ),
+
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: AppColors.backgroundTertiary, width: 1.5),
       ),
+
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
+      ),
+
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+      ),
+
+      errorStyle: const TextStyle(
+        color: Colors.redAccent,
+        fontSize: 12,
+        height: 1.3,
+      ),
+
+      errorMaxLines: 50,
+
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
     );
   }
@@ -1231,35 +1403,45 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _savePersonalInformation() async {
+    // -------------------------------------------------------------------------
+    // VALIDATE ENTIRE FORM
+    //
+    // This validates EVERY field in the Form.
+    //
+    // If even one field is invalid:
+    // - All invalid fields display their errors.
+    // - No backend request is made.
+    // -------------------------------------------------------------------------
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      return;
+    }
+
+    // -------------------------------------------------------------------------
+    // PARSE BIRTHDAY
+    // -------------------------------------------------------------------------
+
     final birthday = _parseDate(_birthdayController.text);
 
     if (birthday == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a valid birthday.')),
-      );
-
       return;
     }
 
-    if (_selectedGender == null || _selectedGender!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a gender.')));
-
-      return;
-    }
+    // -------------------------------------------------------------------------
+    // GET GENDER ID
+    // -------------------------------------------------------------------------
 
     final genderId = _getGenderIdFromName(_selectedGender);
 
     if (genderId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to determine the selected gender.'),
-        ),
-      );
-
       return;
     }
+
+    // -------------------------------------------------------------------------
+    // SAVE
+    // -------------------------------------------------------------------------
 
     setState(() {
       _isSavingPersonalInformation = true;
@@ -1289,6 +1471,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         _user = result.data;
 
         _populateFields(result.data!);
+
+        // Reset any displayed validation errors after
+        // successfully receiving the updated object.
+        _formKey.currentState?.reset();
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1328,13 +1514,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _changePassword() async {
-    if (_newPasswordController.text != _repeatNewPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New passwords do not match.')),
-      );
+    final isValid = _passwordFormKey.currentState?.validate() ?? false;
 
+    if (!isValid) {
       return;
     }
+
+    // -------------------------------------------------------------------------
+    // SAVE
+    // -------------------------------------------------------------------------
 
     setState(() {
       _isChangingPassword = true;
@@ -1357,6 +1545,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       _currentPasswordController.clear();
       _newPasswordController.clear();
       _repeatNewPasswordController.clear();
+
+      // Clear any validation state after successful password change.
+      _passwordFormKey.currentState?.reset();
     } finally {
       if (mounted) {
         setState(() {
