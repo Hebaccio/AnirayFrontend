@@ -1,24 +1,209 @@
 import 'package:flutter/material.dart';
+
 import '../../helpers/app_colors.dart';
+import '../../providers/entity_providers/user_favorites.dart';
+import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/entity_r&m/user_favorites/userfavorites_models.dart';
+import '../../requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
 import '../../requests_and_models/helper_r&m/paged_result/paged_result.dart';
 
 // =============================================================================
 // PROFILE FAVORITES WIDGET
 // =============================================================================
 
-class ProfileFavoritesWidget extends StatelessWidget {
-  const ProfileFavoritesWidget({super.key, required this.favorites});
+class ProfileFavoritesWidget extends StatefulWidget {
+  const ProfileFavoritesWidget({super.key});
 
-  final PagedResult<UserFavoritesMU>? favorites;
+  @override
+  State<ProfileFavoritesWidget> createState() => ProfileFavoritesWidgetState();
+}
+
+// =============================================================================
+// PROFILE FAVORITES WIDGET STATE
+// =============================================================================
+
+class ProfileFavoritesWidgetState extends State<ProfileFavoritesWidget> {
+  // ---------------------------------------------------------------------------
+  // PROVIDER
+  // ---------------------------------------------------------------------------
+
+  final UserFavoriteProvider _userFavoriteProvider = UserFavoriteProvider();
+
+  // ---------------------------------------------------------------------------
+  // DATA
+  // ---------------------------------------------------------------------------
+
+  PagedResult<UserFavoritesMU>? _favorites;
+
+  int _currentPage = 0;
+
+  static const int _pageSize = 20;
+
+  // ---------------------------------------------------------------------------
+  // LOADING / ERROR
+  // ---------------------------------------------------------------------------
+
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+
+  String? _errorMessage;
+
+  // ---------------------------------------------------------------------------
+  // INIT STATE
+  // ---------------------------------------------------------------------------
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadFavorites();
+  }
+
+  // ---------------------------------------------------------------------------
+  // REFRESH
+  // ---------------------------------------------------------------------------
+
+  Future<void> refresh() async {
+    await _loadFavorites();
+  }
+
+  // ---------------------------------------------------------------------------
+  // HAS MORE
+  // ---------------------------------------------------------------------------
+
+  bool get hasMore {
+    if (_favorites == null) {
+      return false;
+    }
+
+    return _favorites!.resultList.length < _favorites!.count;
+  }
+
+  // ---------------------------------------------------------------------------
+  // LOAD FAVORITES
+  // ---------------------------------------------------------------------------
+
+  Future<void> _loadFavorites() async {
+    final token = AuthResult.accessToken;
+
+    if (token == null) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Unable to identify the current user.';
+      });
+
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+        _currentPage = 0;
+      });
+    }
+
+    try {
+      final ApiResult<PagedResult<UserFavoritesMU>> result =
+          await _userFavoriteProvider.getPagedEntityForUsers(
+            const UserFavoritesSOU(page: 0, pageSize: _pageSize),
+          );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result.data != null) {
+        setState(() {
+          _favorites = result.data;
+          _currentPage = 0;
+          _isLoading = false;
+          _errorMessage = null;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = result.message ?? 'Failed to load your favorites.';
+        });
+      }
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load your favorites.';
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // LOAD MORE FAVORITES
+  // ---------------------------------------------------------------------------
+
+  Future<void> loadMore() async {
+    if (_favorites == null) {
+      return;
+    }
+
+    if (_isLoadingMore) {
+      return;
+    }
+
+    if (!hasMore) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    final int nextPage = _currentPage + 1;
+
+    try {
+      final ApiResult<PagedResult<UserFavoritesMU>> result =
+          await _userFavoriteProvider.getPagedEntityForUsers(
+            UserFavoritesSOU(page: nextPage, pageSize: _pageSize),
+          );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result.data != null) {
+        setState(() {
+          _favorites = PagedResult<UserFavoritesMU>(
+            count: result.data!.count,
+            resultList: [..._favorites!.resultList, ...result.data!.resultList],
+          );
+
+          _currentPage = nextPage;
+        });
+      }
+    } catch (e) {
+      // Keep the already-loaded favorites if loading
+      // another page fails.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    // -------------------------------------------------------------------------
-    // LOADING
-    // -------------------------------------------------------------------------
-
-    if (favorites == null) {
+    if (_isLoading) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 50),
@@ -27,33 +212,39 @@ class ProfileFavoritesWidget extends StatelessWidget {
       );
     }
 
-    // -------------------------------------------------------------------------
-    // EMPTY
-    // -------------------------------------------------------------------------
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
 
-    if (favorites!.resultList.isEmpty) {
+    if (_favorites == null || _favorites!.resultList.isEmpty) {
       return _buildEmptyState();
     }
 
-    // -------------------------------------------------------------------------
-    // FAVORITES
-    // -------------------------------------------------------------------------
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _favorites!.resultList.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 0.62,
+          ),
+          itemBuilder: (context, index) {
+            final favorite = _favorites!.resultList[index];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: favorites!.resultList.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.62,
-      ),
-      itemBuilder: (context, index) {
-        final favorite = favorites!.resultList[index];
+            return _buildMovieCard(favorite);
+          },
+        ),
 
-        return _buildMovieCard(favorite);
-      },
+        if (_isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+      ],
     );
   }
 
@@ -73,14 +264,8 @@ class ProfileFavoritesWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ---------------------------------------------------------------------
-          // MOVIE IMAGE
-          // ---------------------------------------------------------------------
           Expanded(child: _buildMovieImage(movie.image)),
 
-          // ---------------------------------------------------------------------
-          // MOVIE INFORMATION
-          // ---------------------------------------------------------------------
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
             child: Column(
@@ -119,9 +304,7 @@ class ProfileFavoritesWidget extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   Widget _buildMovieImage(String imageUrl) {
-    final hasImage = imageUrl.trim().isNotEmpty;
-
-    if (!hasImage) {
+    if (imageUrl.trim().isEmpty) {
       return _buildImagePlaceholder();
     }
 
@@ -193,6 +376,60 @@ class ProfileFavoritesWidget extends StatelessWidget {
             style: TextStyle(
               color: AppColors.textPrimary.withOpacity(0.6),
               fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // ERROR STATE
+  // ---------------------------------------------------------------------------
+
+  Widget _buildErrorState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: AppColors.textPrimary.withOpacity(0.4),
+          ),
+
+          const SizedBox(height: 14),
+
+          const Text(
+            'Unable to load favorites',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          Text(
+            _errorMessage ?? 'Something went wrong.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textPrimary.withOpacity(0.6),
+              fontSize: 13,
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          ElevatedButton.icon(
+            onPressed: _loadFavorites,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Try Again'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.backgroundTertiary,
+              foregroundColor: AppColors.textPrimary,
             ),
           ),
         ],

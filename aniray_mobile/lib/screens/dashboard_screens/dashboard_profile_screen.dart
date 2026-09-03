@@ -5,10 +5,9 @@ import '../../providers/entity_providers/user_favorites.dart';
 import '../../providers/entity_providers/user_provider.dart';
 import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/entity_r&m/user/user_models.dart';
-import '../../requests_and_models/entity_r&m/user_favorites/userfavorites_models.dart';
-import '../../requests_and_models/helper_r&m/paged_result/paged_result.dart';
 import '../../widgets/profile/profile_favorites_widget.dart';
 import '../../widgets/profile/profile_information_widget.dart';
+import '../../widgets/profile/profile_orders_widget.dart';
 
 // =============================================================================
 // PROFILE SECTIONS
@@ -36,19 +35,28 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   // ---------------------------------------------------------------------------
 
   final UserProvider _userProvider = UserProvider();
-  final UserFavoriteProvider _userFavoriteProvider = UserFavoriteProvider();
+
+  // ---------------------------------------------------------------------------
+  // CHILD WIDGET KEYS
+  // ---------------------------------------------------------------------------
+
+  final GlobalKey<ProfileOrdersWidgetState> _ordersKey =
+      GlobalKey<ProfileOrdersWidgetState>();
+
+  final GlobalKey<ProfileFavoritesWidgetState> _favoritesKey =
+      GlobalKey<ProfileFavoritesWidgetState>();
+
+  // ---------------------------------------------------------------------------
+  // SCROLL CONTROLLER
+  // ---------------------------------------------------------------------------
+
+  final ScrollController _profileScrollController = ScrollController();
 
   // ---------------------------------------------------------------------------
   // PROFILE DATA
   // ---------------------------------------------------------------------------
 
   UserMU? _user;
-
-  // ---------------------------------------------------------------------------
-  // FAVORITES DATA
-  // ---------------------------------------------------------------------------
-
-  PagedResult<UserFavoritesMU>? _favorites;
 
   // ---------------------------------------------------------------------------
   // LOADING / ERROR STATE
@@ -71,8 +79,21 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   void initState() {
     super.initState();
 
+    _profileScrollController.addListener(_onProfileScroll);
+
     _loadProfile();
-    _loadFavorites();
+  }
+
+  // ---------------------------------------------------------------------------
+  // DISPOSE
+  // ---------------------------------------------------------------------------
+
+  @override
+  void dispose() {
+    _profileScrollController.removeListener(_onProfileScroll);
+    _profileScrollController.dispose();
+
+    super.dispose();
   }
 
   // ---------------------------------------------------------------------------
@@ -80,14 +101,20 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _loadProfile() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     final token = AuthResult.accessToken;
 
     if (token == null) {
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _isLoading = false;
         _errorMessage = 'Unable to identify the current user.';
@@ -96,48 +123,79 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
       return;
     }
 
-    final result = await _userProvider.entityGetByIdForUsers(null);
+    try {
+      final result = await _userProvider.entityGetByIdForUsers(null);
 
-    if (!mounted) {
-      return;
-    }
+      if (!mounted) {
+        return;
+      }
 
-    if (result.data != null) {
+      if (result.data != null) {
+        setState(() {
+          _user = result.data;
+          _isLoading = false;
+          _errorMessage = null;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = result.message ?? 'Unable to load your profile.';
+        });
+      }
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
-        _user = result.data;
         _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = result.message ?? 'Unable to load your profile.';
+        _errorMessage = 'Unable to load your profile.';
       });
     }
   }
 
   // ---------------------------------------------------------------------------
-  // LOAD FAVORITES
+  // REFRESH ALL PROFILE DATA
   // ---------------------------------------------------------------------------
 
-  Future<void> _loadFavorites() async {
-    final token = AuthResult.accessToken;
+  Future<void> _refreshProfile() async {
+    await Future.wait([
+      _loadProfile(),
+      _favoritesKey.currentState?.refresh() ?? Future.value(),
+      _ordersKey.currentState?.refresh() ?? Future.value(),
+    ]);
+  }
 
-    if (token == null) {
+  // ---------------------------------------------------------------------------
+  // PROFILE SCROLL
+  // ---------------------------------------------------------------------------
+
+  void _onProfileScroll() {
+    if (!_profileScrollController.hasClients) {
       return;
     }
 
-    final result = await _userFavoriteProvider.getPagedEntityForUsers(
-      const UserFavoritesSOU(page: 0, pageSize: 20),
-    );
+    final position = _profileScrollController.position;
 
-    if (!mounted) {
-      return;
-    }
+    // Start loading the next page before the user actually reaches
+    // the bottom of the profile.
+    if (position.pixels >= position.maxScrollExtent - 500) {
+      switch (_selectedSection) {
+        case ProfileSection.info:
+          break;
 
-    if (result.data != null) {
-      setState(() {
-        _favorites = result.data;
-      });
+        case ProfileSection.orders:
+          if (_ordersKey.currentState?.hasMore ?? false) {
+            _ordersKey.currentState?.loadMore();
+          }
+          break;
+
+        case ProfileSection.favorites:
+          if (_favoritesKey.currentState?.hasMore ?? false) {
+            _favoritesKey.currentState?.loadMore();
+          }
+          break;
+      }
     }
   }
 
@@ -147,6 +205,29 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
 
   void _openProfileSettings() {
     widget.onProfileSettings?.call();
+  }
+
+  // ---------------------------------------------------------------------------
+  // CHANGE PROFILE SECTION
+  // ---------------------------------------------------------------------------
+
+  void _selectSection(ProfileSection section) {
+    if (_selectedSection == section) {
+      return;
+    }
+
+    setState(() {
+      _selectedSection = section;
+    });
+
+    // Return to the top whenever the user changes profile sections.
+    if (_profileScrollController.hasClients) {
+      _profileScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -160,6 +241,10 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
       body: SafeArea(child: _buildBody()),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // BODY
+  // ---------------------------------------------------------------------------
 
   Widget _buildBody() {
     if (_isLoading) {
@@ -175,8 +260,9 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadProfile,
+      onRefresh: _refreshProfile,
       child: SingleChildScrollView(
+        controller: _profileScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
         child: Column(
@@ -190,9 +276,6 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // -----------------------------------------------------------------
-            // PROFILE CONTENT
-            // -----------------------------------------------------------------
             _buildProfileContent(),
           ],
         ),
@@ -209,9 +292,6 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
 
     return Stack(
       children: [
-        // -----------------------------------------------------------------------
-        // PROFILE CONTENT
-        // -----------------------------------------------------------------------
         Center(
           child: Column(
             children: [
@@ -245,9 +325,6 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
           ),
         ),
 
-        // -----------------------------------------------------------------------
-        // SETTINGS BUTTON
-        // -----------------------------------------------------------------------
         Positioned(
           top: 0,
           right: 0,
@@ -329,7 +406,7 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // PROFILE SECTION NAVIGATION
+  // SECTION NAVIGATION
   // ---------------------------------------------------------------------------
 
   Widget _buildProfileSectionNavigation() {
@@ -347,13 +424,11 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
             section: ProfileSection.info,
             icon: Icons.person_outline,
           ),
-
           _buildSectionButton(
             label: 'Orders',
             section: ProfileSection.orders,
             icon: Icons.shopping_bag_outlined,
           ),
-
           _buildSectionButton(
             label: 'Favorites',
             section: ProfileSection.favorites,
@@ -365,7 +440,7 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // PROFILE SECTION BUTTON
+  // SECTION BUTTON
   // ---------------------------------------------------------------------------
 
   Widget _buildSectionButton({
@@ -377,11 +452,7 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
 
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedSection = section;
-          });
-        },
+        onTap: () => _selectSection(section),
         child: AnimatedContainer(
           padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
           duration: const Duration(milliseconds: 180),
@@ -423,19 +494,20 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // PROFILE CONTENT
+  // ---------------------------------------------------------------------------
+
   Widget _buildProfileContent() {
     switch (_selectedSection) {
       case ProfileSection.info:
         return ProfileInformationWidget(user: _user!);
+
       case ProfileSection.orders:
-        return const Center(
-          child: Text(
-            'Orders',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
-          ),
-        );
+        return ProfileOrdersWidget(key: _ordersKey);
+
       case ProfileSection.favorites:
-        return ProfileFavoritesWidget(favorites: _favorites);
+        return ProfileFavoritesWidget(key: _favoritesKey);
     }
   }
 
