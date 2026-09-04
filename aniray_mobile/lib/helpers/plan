@@ -7,12 +7,12 @@ Search Screen
 Profile Screen
 Login Screen
 2FA Screen 
+Requests Screen
 
 ---------------------------------
 
 SCREENS NEED WORK:
 
-Requests Screen
 Profile Settings Screen
 Movie Screen
 BluRay Screen
@@ -32,16 +32,13 @@ Home Screen
 
 SCREENS NEED WORK (Details):
 
-Requests Screen:
-    Add Validations
-
 Profile Settings Screen:
-    Add Validation
     Password Changing
 
 Movie Screen:
     Description <br> problems
     Add to Favorites
+
 
 
 

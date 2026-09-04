@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../helpers/app_colors.dart';
+import '../../helpers/validation_helper.dart';
 import '../../providers/entity_providers/request_provider.dart';
 import '../../requests_and_models/entity_r&m/request/request_models.dart';
 import '../../requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
@@ -822,6 +823,12 @@ class RequestAddDialog extends StatefulWidget {
 
 class _RequestAddDialogState extends State<RequestAddDialog> {
   // ---------------------------------------------------------------------------
+  // FORM
+  // ---------------------------------------------------------------------------
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // ---------------------------------------------------------------------------
   // CONTROLLERS
   // ---------------------------------------------------------------------------
 
@@ -862,42 +869,63 @@ class _RequestAddDialogState extends State<RequestAddDialog> {
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildHeader(),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
 
-              const SizedBox(height: 22),
+                const SizedBox(height: 22),
 
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTextField(
-                        controller: _titleController,
-                        label: 'Title',
-                        hint: 'Enter request title',
-                        maxLines: 1,
-                      ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTextField(
+                          controller: _titleController,
+                          label: 'Title',
+                          hint: 'Enter request title',
+                          maxLines: 1,
+                          validator: (value) {
+                            return ValidationHelper.validateStringLength(
+                              value: value,
+                              minLength: 20,
+                              maxLength: 200,
+                              attributeName: 'Title',
+                              nullsAllowed: false,
+                            );
+                          },
+                        ),
 
-                      const SizedBox(height: 18),
+                        const SizedBox(height: 18),
 
-                      _buildTextField(
-                        controller: _textController,
-                        label: 'Request',
-                        hint: 'Describe your request',
-                        maxLines: 7,
-                      ),
-                    ],
+                        _buildTextField(
+                          controller: _textController,
+                          label: 'Request',
+                          hint: 'Describe your request',
+                          maxLines: 7,
+                          validator: (value) {
+                            return ValidationHelper.validateStringLength(
+                              value: value,
+                              minLength: 20,
+                              maxLength: 1000,
+                              attributeName: 'Request',
+                              nullsAllowed: false,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              _buildActions(),
-            ],
+                _buildActions(),
+              ],
+            ),
           ),
         ),
       ),
@@ -949,6 +977,7 @@ class _RequestAddDialogState extends State<RequestAddDialog> {
     required String label,
     required String hint,
     required int maxLines,
+    required String? Function(String?) validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -964,18 +993,49 @@ class _RequestAddDialogState extends State<RequestAddDialog> {
 
         const SizedBox(height: 8),
 
-        TextField(
+        TextFormField(
           controller: controller,
           maxLines: maxLines,
+          validator: validator,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.textSecondary),
             filled: true,
             fillColor: AppColors.backgroundTertiary,
+            errorStyle: const TextStyle(
+              color: AppColors.textError,
+              fontSize: 12,
+            ),
+            errorMaxLines: 5,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color: AppColors.textPrimary,
+                width: 1,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color: AppColors.textError,
+                width: 1,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color: AppColors.textError,
+                width: 1,
+              ),
             ),
           ),
         ),
@@ -1020,27 +1080,17 @@ class _RequestAddDialogState extends State<RequestAddDialog> {
   // ---------------------------------------------------------------------------
 
   void _submit() {
+    final bool isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      return;
+    }
+
     final String title = _titleController.text.trim();
 
     final String text = _textController.text.trim();
 
-    if (title.isEmpty) {
-      _showValidationMessage('Please enter a title.');
-      return;
-    }
-
-    if (text.isEmpty) {
-      _showValidationMessage('Please enter your request.');
-      return;
-    }
-
     Navigator.of(context).pop(RequestAddResult(title: title, text: text));
-  }
-
-  void _showValidationMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
