@@ -467,4 +467,98 @@ class GenericCrudProvider<
         return 'Request failed with status code $statusCode.';
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // CUSTOM REQUEST
+  // ---------------------------------------------------------------------------
+
+  Future<ApiResult<T>> executeCustomGet<T>({
+    required String path,
+    required T Function(dynamic json) fromJson,
+  }) {
+    final requestUrl = '$url$path';
+
+    return _executeCustom<T>(
+      request: () => apiClient.get(requestUrl),
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResult<T>> executeCustomDelete<T>({
+    required String path,
+    required T Function(dynamic json) fromJson,
+  }) {
+    final requestUrl = '$url$path';
+
+    return _executeCustom<T>(
+      request: () => apiClient.delete(requestUrl),
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResult<T>> _executeCustom<T>({
+    required Future<ApiResponse<String>> Function() request,
+    required T Function(dynamic json) fromJson,
+  }) async {
+    try {
+      final response = await request();
+
+      final data = _decodeResponseBody(response.body);
+
+      if (response.statusCode >= 200 &&
+          response.statusCode < 300 &&
+          data != null) {
+        return ApiResult<T>(
+          statusCode: response.statusCode,
+          data: fromJson(data),
+          message: null,
+        );
+      }
+
+      if (data is Map<String, dynamic>) {
+        final message = data['message'] as String?;
+
+        return ApiResult<T>(
+          statusCode: response.statusCode,
+          data: null,
+          message: message ?? _messageForStatusCode(response.statusCode),
+        );
+      }
+
+      return ApiResult<T>(
+        statusCode: response.statusCode,
+        data: null,
+        message: _messageForStatusCode(response.statusCode),
+      );
+    } on TimeoutException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'The request timed out. Please try again.',
+      );
+    } on SocketException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'Unable to connect to the server.',
+      );
+    } on FormatException {
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'The server returned an invalid response.',
+      );
+    } catch (e, stackTrace) {
+      print('========== GENERIC PROVIDER ERROR ==========');
+      print('ERROR: $e');
+      print('STACK TRACE: $stackTrace');
+      print('============================================');
+
+      return ApiResult<T>(
+        statusCode: null,
+        data: null,
+        message: 'An unexpected error occurred: $e',
+      );
+    }
+  }
 }

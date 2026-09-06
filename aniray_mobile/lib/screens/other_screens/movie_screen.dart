@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 import '../../helpers/app_colors.dart';
 import '../../providers/entity_providers/bluray_provider.dart';
 import '../../providers/entity_providers/movie_provider.dart';
+import '../../providers/entity_providers/user_favorites.dart';
 import '../../requests_and_models/entity_r&m/bluray/bluray_models.dart';
 import '../../requests_and_models/entity_r&m/movie/movie_models.dart';
+import '../../requests_and_models/entity_r&m/user_favorites/userfavorites_models.dart';
 import '../../requests_and_models/helper_r&m/api_result_helpers/api_result.dart';
 import '../../requests_and_models/helper_r&m/paged_result/paged_result.dart';
 
@@ -31,6 +34,7 @@ class _MovieScreenState extends State<MovieScreen> {
 
   final MovieProvider _movieProvider = MovieProvider();
   final BluRayProvider _bluRayProvider = BluRayProvider();
+  final UserFavoriteProvider _userFavoriteProvider = UserFavoriteProvider();
 
   // ---------------------------------------------------------------------------
   // MOVIE
@@ -49,6 +53,9 @@ class _MovieScreenState extends State<MovieScreen> {
   // ---------------------------------------------------------------------------
 
   bool _isLoading = true;
+  bool _isMovieFavorite = false;
+  bool _isCheckingFavorite = true;
+  bool _isUpdatingFavorite = false;
   String? _errorMessage;
 
   // ---------------------------------------------------------------------------
@@ -72,6 +79,7 @@ class _MovieScreenState extends State<MovieScreen> {
     }
 
     setState(() {
+      _isCheckingFavorite = true;
       _isLoading = true;
       _errorMessage = null;
     });
@@ -95,6 +103,7 @@ class _MovieScreenState extends State<MovieScreen> {
         setState(() {
           _movie = null;
           _bluRays = [];
+          _isMovieFavorite = false;
           _errorMessage = movieResult.message ?? "Failed to load movie.";
           _isLoading = false;
         });
@@ -107,6 +116,34 @@ class _MovieScreenState extends State<MovieScreen> {
       setState(() {
         _movie = movie;
       });
+
+      // -----------------------------------------------------------------------
+      // CHECK IF MOVIE IS IN FAVORITES
+      // -----------------------------------------------------------------------
+
+      final ApiResult<bool> favoriteResult = await _userFavoriteProvider
+          .isMovieInFavorites(widget.movieId);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (favoriteResult.statusCode != null &&
+          favoriteResult.statusCode! >= 200 &&
+          favoriteResult.statusCode! < 300 &&
+          favoriteResult.data != null) {
+        setState(() {
+          _isMovieFavorite = favoriteResult.data!;
+          _isCheckingFavorite = false;
+        });
+      } else {
+        _isMovieFavorite = false;
+        _isCheckingFavorite = false;
+
+        setState(() {
+          _isMovieFavorite = false;
+        });
+      }
 
       // -----------------------------------------------------------------------
       // LOAD BLU-RAYS
@@ -147,6 +184,7 @@ class _MovieScreenState extends State<MovieScreen> {
       setState(() {
         _movie = null;
         _bluRays = [];
+        _isMovieFavorite = false;
         _errorMessage = e.toString().replaceFirst("Exception: ", "");
       });
     } finally {
@@ -156,6 +194,96 @@ class _MovieScreenState extends State<MovieScreen> {
         });
       }
     }
+  }
+
+  Future<void> _toggleMovieFavorite() async {
+    if (_isCheckingFavorite || _isUpdatingFavorite) {
+      return;
+    }
+
+    setState(() {
+      _isUpdatingFavorite = true;
+    });
+
+    try {
+      if (_isMovieFavorite) {
+        // -----------------------------------------------------------------------
+        // REMOVE FROM FAVORITES
+        // -----------------------------------------------------------------------
+
+        final ApiResult<bool> result = await _userFavoriteProvider
+            .removeMovieFromFavorites(widget.movieId);
+
+        if (!mounted) {
+          return;
+        }
+
+        if (result.statusCode != null &&
+            result.statusCode! >= 200 &&
+            result.statusCode! < 300) {
+          setState(() {
+            _isMovieFavorite = false;
+            _isUpdatingFavorite = false;
+          });
+        } else {
+          setState(() {
+            _isUpdatingFavorite = false;
+          });
+
+          _showFavoriteError(
+            result.message ?? 'Failed to remove movie from favorites.',
+          );
+        }
+      } else {
+        // -----------------------------------------------------------------------
+        // ADD TO FAVORITES
+        // -----------------------------------------------------------------------
+
+        final ApiResult<UserFavoritesMU> result = await _userFavoriteProvider
+            .insertEntityForUsers(UserFavoritesIRU(movieId: widget.movieId));
+
+        if (!mounted) {
+          return;
+        }
+
+        if (result.statusCode != null &&
+            result.statusCode! >= 200 &&
+            result.statusCode! < 300) {
+          setState(() {
+            _isMovieFavorite = true;
+            _isUpdatingFavorite = false;
+          });
+        } else {
+          setState(() {
+            _isUpdatingFavorite = false;
+          });
+
+          _showFavoriteError(
+            result.message ?? 'Failed to add movie to favorites.',
+          );
+        }
+      }
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isUpdatingFavorite = false;
+      });
+
+      _showFavoriteError('Failed to update movie favorites.');
+    }
+  }
+
+  void _showFavoriteError(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   // ---------------------------------------------------------------------------
@@ -170,7 +298,6 @@ class _MovieScreenState extends State<MovieScreen> {
         child: Column(
           children: [
             _buildTopBar(),
-
             Expanded(child: _buildContent()),
           ],
         ),
@@ -197,6 +324,9 @@ class _MovieScreenState extends State<MovieScreen> {
       ),
       child: Row(
         children: [
+          // ---------------------------------------------------------------------
+          // BACK BUTTON
+          // ---------------------------------------------------------------------
           IconButton(
             onPressed: widget.onBack,
             icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
@@ -204,16 +334,97 @@ class _MovieScreenState extends State<MovieScreen> {
 
           const SizedBox(width: 4),
 
-          Expanded(
+          // ---------------------------------------------------------------------
+          // BACK TEXT
+          // ---------------------------------------------------------------------
+          const Expanded(
             child: Text(
               "Back",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // ---------------------------------------------------------------------
+          // FAVORITES BUTTON
+          // ---------------------------------------------------------------------
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            height: 42,
+            child: ElevatedButton(
+              onPressed: _isCheckingFavorite || _isUpdatingFavorite
+                  ? null
+                  : _toggleMovieFavorite,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isCheckingFavorite || _isUpdatingFavorite
+                    ? AppColors.backgroundSecondary
+                    : _isMovieFavorite
+                    ? Colors.red.shade700
+                    : AppColors.backgroundSecondary,
+                disabledBackgroundColor: AppColors.backgroundSecondary,
+                foregroundColor: AppColors.textPrimary,
+                disabledForegroundColor: AppColors.textPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color:
+                        _isMovieFavorite &&
+                            !_isCheckingFavorite &&
+                            !_isUpdatingFavorite
+                        ? Colors.red.shade400
+                        : AppColors.backgroundTertiary,
+                    width: 1,
+                  ),
+                ),
+                elevation:
+                    _isMovieFavorite &&
+                        !_isCheckingFavorite &&
+                        !_isUpdatingFavorite
+                    ? 3
+                    : 0,
+                shadowColor: Colors.red.withOpacity(0.25),
+              ),
+              child: _isCheckingFavorite || _isUpdatingFavorite
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.textPrimary,
+                        ),
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isMovieFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 19,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isMovieFavorite
+                              ? "Movie in Favorites"
+                              : "Add Movie to Favorites",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],
@@ -361,6 +572,31 @@ class _MovieScreenState extends State<MovieScreen> {
   Widget _buildDescription() {
     final movie = _movie!;
 
+    if (movie.description.trim().isEmpty) {
+      return const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Description",
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            "No description available.",
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -375,15 +611,19 @@ class _MovieScreenState extends State<MovieScreen> {
 
         const SizedBox(height: 10),
 
-        Text(
-          movie.description.trim().isEmpty
-              ? "No description available."
-              : movie.description,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-            height: 1.5,
-          ),
+        Html(
+          data: movie.description,
+          style: {
+            'body': Style(
+              color: AppColors.textSecondary,
+              fontSize: FontSize(14),
+              lineHeight: const LineHeight(1.5),
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+            ),
+            'p': Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+            'br': Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+          },
         ),
       ],
     );
@@ -438,14 +678,6 @@ class _MovieScreenState extends State<MovieScreen> {
       ],
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // BLU-RAY SECTION
-  // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-  // BLU-RAY SECTION
-  // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
   // BLU-RAY SECTION
@@ -657,10 +889,6 @@ class _MovieScreenState extends State<MovieScreen> {
                             child: ElevatedButton(
                               onPressed: canAddToCart
                                   ? () {
-                                      // -------------------------------------------------
-                                      // ADD TO CART WILL BE IMPLEMENTED LATER.
-                                      // -------------------------------------------------
-
                                       debugPrint(
                                         "Add ${quantity}x Blu-ray "
                                         "${bluRay.id} to cart",

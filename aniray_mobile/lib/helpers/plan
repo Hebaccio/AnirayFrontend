@@ -13,6 +13,7 @@ Requests Screen
 
 SCREENS NEED WORK:
 
+BluRay Screen
 Profile Settings Screen
 Movie Screen
 BluRay Screen
@@ -32,19 +33,16 @@ Home Screen
 
 SCREENS NEED WORK (Details):
 
+BluRay Screen:
+    Whole Screen
+
 Profile Settings Screen:
     Password Changing
 
 Movie Screen:
-    Description <br> problems
-    Add to Favorites
-
-
-
-
-
-
-Movie Screen:
     Fetch Blurays already in carts
+
+BluRay Screen:
+    Fetch Blurays amount in cart
 
 */
