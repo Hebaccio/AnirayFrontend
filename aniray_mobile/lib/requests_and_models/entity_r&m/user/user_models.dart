@@ -18,7 +18,8 @@ class UserURU {
   final DateTime? birthday;
 
   final String? password;
-  final String? password2;
+  final String? newPassword;
+  final String? newRepeatPassword;
   final bool? twoFA;
   final int? genderId;
 
@@ -30,7 +31,8 @@ class UserURU {
     this.email,
     this.birthday,
     this.password,
-    this.password2,
+    this.newPassword,
+    this.newRepeatPassword,
     this.twoFA,
     this.genderId,
   });

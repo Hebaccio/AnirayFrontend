@@ -958,7 +958,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         email: null,
         birthday: null,
         password: null,
-        password2: null,
+        newPassword: null,
         twoFA: value,
         genderId: null,
       );
@@ -1403,16 +1403,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _savePersonalInformation() async {
-    // -------------------------------------------------------------------------
-    // VALIDATE ENTIRE FORM
-    //
-    // This validates EVERY field in the Form.
-    //
-    // If even one field is invalid:
-    // - All invalid fields display their errors.
-    // - No backend request is made.
-    // -------------------------------------------------------------------------
-
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
@@ -1457,7 +1447,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         birthday: birthday,
         genderId: genderId,
         password: null,
-        password2: null,
+        newPassword: null,
         twoFA: _isTwoFAEnabled,
       );
 
@@ -1520,34 +1510,81 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       return;
     }
 
-    // -------------------------------------------------------------------------
-    // SAVE
-    // -------------------------------------------------------------------------
+    if (_isChangingPassword) {
+      return;
+    }
 
     setState(() {
       _isChangingPassword = true;
     });
 
     try {
-      // TODO:
-      // Add your change-password API call here.
+      // -------------------------------------------------------------------------
+      // BUILD REQUEST
+      // -------------------------------------------------------------------------
 
-      await Future.delayed(const Duration(milliseconds: 500));
+      final request = UserURU(
+        pfp: null,
+        username: null,
+        name: null,
+        lastName: null,
+        email: null,
+        birthday: null,
+        password: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+        newRepeatPassword: _repeatNewPasswordController.text,
+
+        twoFA: null,
+        genderId: null,
+      );
+
+      // -------------------------------------------------------------------------
+      // UPDATE USER
+      // -------------------------------------------------------------------------
+
+      final result = await _userProvider.updateEntityForUsers(null, request);
 
       if (!mounted) {
         return;
       }
 
+      // -------------------------------------------------------------------------
+      // SUCCESS
+      // -------------------------------------------------------------------------
+
+      if (result.data != null) {
+        _user = result.data;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password changed successfully.')),
+        );
+
+        // Clear all password fields.
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _repeatNewPasswordController.clear();
+
+        // Clear any displayed validation errors.
+        _passwordFormKey.currentState?.reset();
+
+        return;
+      }
+
+      // -------------------------------------------------------------------------
+      // BACKEND VALIDATION ERROR
+      // -------------------------------------------------------------------------
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully.')),
+        SnackBar(content: Text(result.message ?? 'Unable to change password.')),
       );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
 
-      _currentPasswordController.clear();
-      _newPasswordController.clear();
-      _repeatNewPasswordController.clear();
-
-      // Clear any validation state after successful password change.
-      _passwordFormKey.currentState?.reset();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to change password: $e')));
     } finally {
       if (mounted) {
         setState(() {

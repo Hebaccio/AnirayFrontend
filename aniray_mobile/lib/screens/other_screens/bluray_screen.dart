@@ -555,33 +555,6 @@ class _BluRayScreenState extends State<BluRayScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // INFO ROW
-  // ---------------------------------------------------------------------------
-
-  Widget _buildInfoRow({required IconData icon, required String label}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.textSecondary, size: 16),
-
-        const SizedBox(width: 7),
-
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // ERROR STATE
   // ---------------------------------------------------------------------------
 

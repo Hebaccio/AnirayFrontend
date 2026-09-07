@@ -17,7 +17,8 @@ UserURU _$UserURUFromJson(Map<String, dynamic> json) => UserURU(
     const DateOnlyConverter().fromJson,
   ),
   password: json['password'] as String?,
-  password2: json['password2'] as String?,
+  newPassword: json['newPassword'] as String?,
+  newRepeatPassword: json['newRepeatPassword'] as String?,
   twoFA: json['twoFA'] as bool?,
   genderId: (json['genderId'] as num?)?.toInt(),
 );
@@ -33,7 +34,8 @@ Map<String, dynamic> _$UserURUToJson(UserURU instance) => <String, dynamic>{
     const DateOnlyConverter().toJson,
   ),
   'password': instance.password,
-  'password2': instance.password2,
+  'newPassword': instance.newPassword,
+  'newRepeatPassword': instance.newRepeatPassword,
   'twoFA': instance.twoFA,
   'genderId': instance.genderId,
 };
