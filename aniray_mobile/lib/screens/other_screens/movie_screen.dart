@@ -17,11 +17,13 @@ class MovieScreen extends StatefulWidget {
     required this.title,
     required this.movieId,
     required this.onBack,
+    required this.onBluRaySelected,
   });
 
   final String title;
   final int movieId;
   final VoidCallback onBack;
+  final void Function(BluRayMU bluRay) onBluRaySelected;
 
   @override
   State<MovieScreen> createState() => _MovieScreenState();
@@ -733,200 +735,207 @@ class _MovieScreenState extends State<MovieScreen> {
         final bool isOutOfStock = bluRay.inStock <= 0;
         final bool canAddToCart = quantity > 0 && !isOutOfStock;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.backgroundSecondary,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // -----------------------------------------------------------------
-              // POSTER
-              // -----------------------------------------------------------------
-              SizedBox(
-                width: 75,
-                height: 112,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
-                  child: Image.network(
-                    bluRay.image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildImagePlaceholder(iconSize: 28);
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      }
+        return InkWell(
+          onTap: () {
+            widget.onBluRaySelected(bluRay);
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundSecondary,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -----------------------------------------------------------------
+                // POSTER
+                // -----------------------------------------------------------------
+                SizedBox(
+                  width: 75,
+                  height: 112,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(9),
+                    child: Image.network(
+                      bluRay.image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildImagePlaceholder(iconSize: 28);
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
 
-                      return _buildImageLoading();
-                    },
+                        return _buildImageLoading();
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              // -----------------------------------------------------------------
-              // INFORMATION + ACTIONS
-              // -----------------------------------------------------------------
-              Expanded(
-                child: SizedBox(
-                  height: 112,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ---------------------------------------------------------
-                      // TITLE
-                      // ---------------------------------------------------------
-                      Text(
-                        bluRay.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                // -----------------------------------------------------------------
+                // INFORMATION + ACTIONS
+                // -----------------------------------------------------------------
+                Expanded(
+                  child: SizedBox(
+                    height: 112,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ---------------------------------------------------------
+                        // TITLE
+                        // ---------------------------------------------------------
+                        Text(
+                          bluRay.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 5),
+                        const SizedBox(height: 5),
 
-                      // ---------------------------------------------------------
-                      // PRICE
-                      // ---------------------------------------------------------
-                      Text(
-                        "${bluRay.price.toStringAsFixed(2)} KM",
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                        // ---------------------------------------------------------
+                        // PRICE
+                        // ---------------------------------------------------------
+                        Text(
+                          "${bluRay.price.toStringAsFixed(2)} KM",
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
 
-                      const Spacer(),
+                        const Spacer(),
 
-                      // ---------------------------------------------------------
-                      // BOTTOM ROW
-                      // ---------------------------------------------------------
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          // -----------------------------------------------------
-                          // QUANTITY
-                          // -----------------------------------------------------
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.backgroundTertiary,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: quantity > 0
-                                      ? () {
-                                          setCardState(() {
-                                            quantity--;
-                                          });
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.remove, size: 16),
-                                  color: AppColors.textPrimary,
-                                  disabledColor: AppColors.textSecondary
-                                      .withOpacity(0.4),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 30,
-                                    minHeight: 30,
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  width: 22,
-                                  child: Text(
-                                    "$quantity",
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                        // ---------------------------------------------------------
+                        // BOTTOM ROW
+                        // ---------------------------------------------------------
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // -----------------------------------------------------
+                            // QUANTITY
+                            // -----------------------------------------------------
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.backgroundTertiary,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: quantity > 0
+                                        ? () {
+                                            setCardState(() {
+                                              quantity--;
+                                            });
+                                          }
+                                        : null,
+                                    icon: const Icon(Icons.remove, size: 16),
+                                    color: AppColors.textPrimary,
+                                    disabledColor: AppColors.textSecondary
+                                        .withOpacity(0.4),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 30,
+                                      minHeight: 30,
                                     ),
                                   ),
-                                ),
 
-                                IconButton(
-                                  onPressed: quantity < 5 && !isOutOfStock
-                                      ? () {
-                                          setCardState(() {
-                                            quantity++;
-                                          });
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.add, size: 16),
-                                  color: AppColors.textPrimary,
-                                  disabledColor: AppColors.textSecondary
+                                  SizedBox(
+                                    width: 22,
+                                    child: Text(
+                                      "$quantity",
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+
+                                  IconButton(
+                                    onPressed: quantity < 5 && !isOutOfStock
+                                        ? () {
+                                            setCardState(() {
+                                              quantity++;
+                                            });
+                                          }
+                                        : null,
+                                    icon: const Icon(Icons.add, size: 16),
+                                    color: AppColors.textPrimary,
+                                    disabledColor: AppColors.textSecondary
+                                        .withOpacity(0.4),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 30,
+                                      minHeight: 30,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // -----------------------------------------------------
+                            // ADD TO CART
+                            // -----------------------------------------------------
+                            SizedBox(
+                              height: 36,
+                              child: ElevatedButton(
+                                onPressed: canAddToCart
+                                    ? () {
+                                        debugPrint(
+                                          "Add ${quantity}x Blu-ray "
+                                          "${bluRay.id} to cart",
+                                        );
+                                      }
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.backgroundTertiary,
+                                  foregroundColor: AppColors.textPrimary,
+                                  disabledBackgroundColor: AppColors
+                                      .backgroundTertiary
                                       .withOpacity(0.4),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 30,
-                                    minHeight: 30,
+                                  disabledForegroundColor: AppColors
+                                      .textSecondary
+                                      .withOpacity(0.5),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  "Add to cart",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(width: 8),
-
-                          // -----------------------------------------------------
-                          // ADD TO CART
-                          // -----------------------------------------------------
-                          SizedBox(
-                            height: 36,
-                            child: ElevatedButton(
-                              onPressed: canAddToCart
-                                  ? () {
-                                      debugPrint(
-                                        "Add ${quantity}x Blu-ray "
-                                        "${bluRay.id} to cart",
-                                      );
-                                    }
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.backgroundTertiary,
-                                foregroundColor: AppColors.textPrimary,
-                                disabledBackgroundColor: AppColors
-                                    .backgroundTertiary
-                                    .withOpacity(0.4),
-                                disabledForegroundColor: AppColors.textSecondary
-                                    .withOpacity(0.5),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: const Text(
-                                "Add to cart",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

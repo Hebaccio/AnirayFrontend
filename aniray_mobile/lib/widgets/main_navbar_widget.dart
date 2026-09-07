@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../helpers/app_colors.dart';
+import '../requests_and_models/entity_r&m/bluray/bluray_models.dart';
 import '../requests_and_models/entity_r&m/movie/movie_models.dart';
 import '../screens/dashboard_screens/dashboard_cart_screen.dart';
 import '../screens/dashboard_screens/dashboard_home_screen.dart';
 import '../screens/dashboard_screens/dashboard_profile_screen.dart';
 import '../screens/dashboard_screens/dashboard_requests_screen.dart';
 import '../screens/dashboard_screens/dashboard_search_screen.dart';
+import '../screens/other_screens/bluray_screen.dart';
 import '../screens/other_screens/movie_screen.dart';
 import '../screens/other_screens/profile_settings_screen.dart';
 
@@ -18,12 +20,16 @@ class MainNavbarWidget extends StatefulWidget {
 }
 
 class _MainNavbarWidgetState extends State<MainNavbarWidget> {
+  // ---------------------------------------------------------------------------
+  // NAVIGATION
+  // ---------------------------------------------------------------------------
+
   int _selectedIndex = 0;
 
-  bool _isLoggingOut = false;
+  final List<Widget> _detailsPages = [];
 
   // ---------------------------------------------------------------------------
-  // PAGES
+  // MAIN PAGES
   // ---------------------------------------------------------------------------
 
   List<Widget> get _pages => [
@@ -42,12 +48,6 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
   ];
 
   // ---------------------------------------------------------------------------
-  // DETAILS PAGE
-  // ---------------------------------------------------------------------------
-
-  Widget? _detailsPage;
-
-  // ---------------------------------------------------------------------------
   // BUILD
   // ---------------------------------------------------------------------------
 
@@ -55,9 +55,9 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF08111F),
-
-      body: _detailsPage ?? _pages[_selectedIndex],
-
+      body: _detailsPages.isNotEmpty
+          ? _detailsPages.last
+          : _pages[_selectedIndex],
       bottomNavigationBar: _buildNavbar(),
     );
   }
@@ -68,9 +68,11 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
 
   void openProfileSettings() {
     setState(() {
-      _detailsPage = ProfileSettingsScreen(
-        title: "ProfileSettings",
-        onBack: _closeDetailsPage,
+      _detailsPages.add(
+        ProfileSettingsScreen(
+          title: "ProfileSettings",
+          onBack: _closeDetailsPage,
+        ),
       );
     });
   }
@@ -81,21 +83,57 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
 
   void openMovie(MovieMU movie) {
     setState(() {
-      _detailsPage = MovieScreen(
-        title: movie.title,
-        movieId: movie.id,
-        onBack: _closeDetailsPage,
+      _detailsPages.add(
+        MovieScreen(
+          title: movie.title,
+          movieId: movie.id,
+          onBack: _closeDetailsPage,
+          onBluRaySelected: openBluRay,
+        ),
       );
     });
   }
 
   // ---------------------------------------------------------------------------
-  // CLOSE DETAILS PAGE
+  // OPEN BLU-RAY
+  // ---------------------------------------------------------------------------
+
+  void openBluRay(BluRayMU bluRay) {
+    setState(() {
+      _detailsPages.add(
+        BluRayScreen(
+          title: bluRay.title,
+          blurayId: bluRay.id,
+          onBack: _closeDetailsPage,
+        ),
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CLOSE CURRENT DETAIL PAGE
+  // ---------------------------------------------------------------------------
+  //
+  // Removes ONLY the current detail page.
+  //
+  // Example:
+  //
+  // [MovieScreen, BluRayScreen]
+  //
+  // Back ->
+  //
+  // [MovieScreen]
+  //
+  // Therefore MovieScreen becomes visible again.
   // ---------------------------------------------------------------------------
 
   void _closeDetailsPage() {
+    if (_detailsPages.isEmpty) {
+      return;
+    }
+
     setState(() {
-      _detailsPage = null;
+      _detailsPages.removeLast();
     });
   }
 
@@ -163,7 +201,7 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
   }
 
   // ---------------------------------------------------------------------------
-  // NAV BUTTON
+  // NAVBAR BUTTON
   // ---------------------------------------------------------------------------
 
   Widget _navButton({
@@ -172,14 +210,16 @@ class _MainNavbarWidgetState extends State<MainNavbarWidget> {
     required String text,
     required int index,
   }) {
-    final bool isSelected = _detailsPage == null && _selectedIndex == index;
+    final bool isSelected = _detailsPages.isEmpty && _selectedIndex == index;
 
     return Expanded(
       child: InkWell(
         onTap: () {
           setState(() {
             _selectedIndex = index;
-            _detailsPage = null;
+
+            // When switching main navigation tabs, clear all detail pages.
+            _detailsPages.clear();
           });
         },
         child: AnimatedContainer(
