@@ -4,6 +4,7 @@ import '../../providers/auth_provider/auth_provider.dart';
 import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/auth_r&m/login_dto.dart';
 import '../../widgets/main_navbar_widget.dart';
+import '../other_screens/password_change_email_screen.dart';
 import '2fa_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -339,9 +340,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // FORGOT PASSWORD
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: Alignment.center,
                               child: TextButton(
-                                onPressed: () {},
+                                onPressed: _isLoading
+                                    ? null
+                                    : () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PasswordChangeEmailScreen(
+                                                  title: "",
+                                                  onBack: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      },
                                 style: TextButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 4,

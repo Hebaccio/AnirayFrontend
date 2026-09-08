@@ -8,12 +8,13 @@ Profile Screen
 Login Screen
 2FA Screen 
 Requests Screen
+Profile Settings Screen
+Password Change Screens
 
 ---------------------------------
 
 SCREENS NEED WORK:
 
-Profile Settings Screen
 Movie Screen
 BluRay Screen
 
@@ -31,9 +32,6 @@ Home Screen
 ---------------------------------
 
 SCREENS NEED WORK (Details):
-
-Profile Settings Screen:
-    Password Changing
 
 Movie Screen:
     Fetch Blurays already in carts

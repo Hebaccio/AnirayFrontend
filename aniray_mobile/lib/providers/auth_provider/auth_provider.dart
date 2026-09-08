@@ -14,6 +14,8 @@ class AuthProvider {
   final String _refresh = "Auth/Refresh";
   final String _verify2FA = "Auth/Verify-2FA";
   final String _resend2FA = "Auth/Resend-2FA";
+  final String _send2FAForPasswordReset = "Auth/Send2FAForPasswordReset";
+  final String _verify2FAForPasswordReset = "Auth/Verify2FAForPasswordReset";
 
   AuthProvider() {
     _baseUrl = const String.fromEnvironment(
@@ -166,12 +168,10 @@ class AuthProvider {
       return false;
     }
 
-    // Access token is still valid.
     if (!AuthResult.isAccessTokenExpired) {
       return true;
     }
 
-    // Access token expired, attempt refresh.
     try {
       await refresh();
       return true;
@@ -226,6 +226,56 @@ class AuthProvider {
 
     throw Exception(errorMessage);
   }
+
+  // --------------------------------------------------
+  // PASSWORD RESET
+  // --------------------------------------------------
+
+  Future<AuthResult> send2FAForPasswordReset(String email) async {
+    final uri = Uri.parse(
+      "$_baseUrl$_send2FAForPasswordReset",
+    ).replace(queryParameters: {"email": email});
+
+    final response = await http.post(uri);
+
+    final data = _decodeResponse(response);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
+    }
+
+    throw Exception(_extractErrorMessage(data));
+  }
+
+  Future<AuthResult> verify2FAForPasswordReset({
+    required int userId,
+    required String code,
+    required String newPassword,
+    required String newRepeatPassword,
+  }) async {
+    final uri = Uri.parse("$_baseUrl$_verify2FAForPasswordReset");
+
+    final response = await http.post(
+      uri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "userId": userId,
+        "code": code,
+        "newPassword": newPassword,
+        "newRepeatPassword": newRepeatPassword,
+      }),
+    );
+
+    final data = _decodeResponse(response);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _processAuthenticationResponse(data);
+    }
+
+    throw Exception(_extractErrorMessage(data));
+  }
+
+  // --------------------------------------------------
 
   Future<AuthResult> _processAuthenticationResponse(dynamic data) async {
     if (data is! Map<String, dynamic>) {
