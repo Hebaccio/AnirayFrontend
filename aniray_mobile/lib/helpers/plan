@@ -1,40 +1,38 @@
 /*
 ---------------------------------
 
-FINISHED SCREENS:
+SCREENS:
 
-Search Screen
-Profile Screen
-Login Screen
-2FA Screen 
-Requests Screen
-Profile Settings Screen
-Password Change Screens
-
----------------------------------
-
-SCREENS NEED WORK:
-
-Movie Screen
-BluRay Screen
-
----------------------------------
-
-UNSTARTED SCREENS:
-
-Cart Screen
-Order Screen
-Checkout Screen
-Payment Screen
--------
-Home Screen
+✘ - Home Screen
+✓ - Search Screen
+✓ - Movie Screen
+✓ - BluRay Screen
+✘ - Cart Screen
+✘ - Order Screen
+✘ - Checkout Screen
+✘ - Payment Screen
+✓ - Requests Screen
+✓ - Profile Screen (Info)
+✘ - Profile Screen (Orders)
+✓ - Profile Screen (Favorites)
+✘ - Profile Settings Screen
+✓ - Login Screen
+✓ - 2FA Screen 
+✓ - Password Change Screens
 
 ---------------------------------
+
+NEXT SCREENS:
+
+✘ - Profile Settings Screen
+✘ - Cart Screen
+✘ - Checkout Screen
+✘ - Payment Screen
+✘ - Profile Screen (Orders)
+✘ - Home Screen
+
 
 SCREENS NEED WORK (Details):
-
-Movie Screen:
-    Fetch Blurays already in carts
 
 BluRay Screen:
     Fetch Blurays amount in cart

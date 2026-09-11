@@ -496,6 +496,23 @@ class GenericCrudProvider<
     );
   }
 
+  Future<ApiResult<T>> executeCustomPost<T>({
+    required String path,
+    required dynamic body,
+    required T Function(dynamic json) fromJson,
+  }) {
+    final requestUrl = '$url$path';
+
+    return _executeCustom<T>(
+      request: () => apiClient.post(
+        requestUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ),
+      fromJson: fromJson,
+    );
+  }
+
   Future<ApiResult<T>> _executeCustom<T>({
     required Future<ApiResponse<String>> Function() request,
     required T Function(dynamic json) fromJson,

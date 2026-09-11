@@ -11,6 +11,7 @@ import '../../requests_and_models/auth_r&m/auth_result.dart';
 import '../../requests_and_models/entity_r&m/user/user_models.dart';
 import '../../requests_and_models/helper_r&m/basic_entities/basic_entities.dart';
 import '../auth_screens/login_screen.dart';
+import 'password_change_email_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({
@@ -1599,8 +1600,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // ---------------------------------------------------------------------------
 
   void _forgotPassword() {
-    // TODO:
-    // Connect this to your forgot-password flow.
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PasswordChangeEmailScreen(
+          title: "",
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -1626,7 +1635,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           ),
           content: const Text(
             'Are you sure you want to delete your account? '
-            'This action cannot be undone.',
+            'This action cannot be undone!',
             style: TextStyle(color: AppColors.textSecondary),
           ),
           actions: [

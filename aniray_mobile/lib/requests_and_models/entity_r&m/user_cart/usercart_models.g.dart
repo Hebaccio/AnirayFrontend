@@ -6,6 +6,22 @@ part of 'usercart_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+UserCartIsBluRayInCart _$UserCartIsBluRayInCartFromJson(
+  Map<String, dynamic> json,
+) => UserCartIsBluRayInCart(
+  userCartId: (json['userCartId'] as num).toInt(),
+  bluRayId: (json['bluRayId'] as num).toInt(),
+  amount: (json['amount'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$UserCartIsBluRayInCartToJson(
+  UserCartIsBluRayInCart instance,
+) => <String, dynamic>{
+  'userCartId': instance.userCartId,
+  'bluRayId': instance.bluRayId,
+  'amount': instance.amount,
+};
+
 UserCartURU _$UserCartURUFromJson(Map<String, dynamic> json) => UserCartURU(
   cartNotes: json['cartNotes'] as String? ?? '',
   bluRay:

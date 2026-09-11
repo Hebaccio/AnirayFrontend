@@ -5,6 +5,24 @@ import '../bluray/bluray_models.dart';
 part 'usercart_models.g.dart';
 
 @JsonSerializable()
+class UserCartIsBluRayInCart {
+  final int userCartId;
+  final int bluRayId;
+  final double amount;
+
+  const UserCartIsBluRayInCart({
+    required this.userCartId,
+    required this.bluRayId,
+    required this.amount,
+  });
+
+  factory UserCartIsBluRayInCart.fromJson(Map<String, dynamic> json) =>
+      _$UserCartIsBluRayInCartFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserCartIsBluRayInCartToJson(this);
+}
+
+@JsonSerializable()
 class UserCartURU {
   final String cartNotes;
   final List<BluRayCartUR> bluRay;

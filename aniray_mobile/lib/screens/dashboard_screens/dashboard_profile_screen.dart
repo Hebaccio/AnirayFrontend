@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../helpers/app_colors.dart';
@@ -77,6 +79,8 @@ class _DashboardProfileScreenState extends State<DashboardProfileScreen> {
   @override
   void initState() {
     super.initState();
+
+    //print(AuthResult.accessToken);
 
     _profileScrollController.addListener(_onProfileScroll);
 
