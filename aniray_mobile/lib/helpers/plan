@@ -16,6 +16,7 @@ SCREENS:
 ✘ - Profile Screen (Orders)
 ✓ - Profile Screen (Favorites)
 ✘ - Profile Settings Screen
+✓ - Profile Settings Screen
 ✓ - Login Screen
 ✓ - 2FA Screen 
 ✓ - Password Change Screens
@@ -24,7 +25,6 @@ SCREENS:
 
 NEXT SCREENS:
 
-✘ - Profile Settings Screen
 ✘ - Cart Screen
 ✘ - Checkout Screen
 ✘ - Payment Screen
@@ -34,7 +34,7 @@ NEXT SCREENS:
 
 SCREENS NEED WORK (Details):
 
-BluRay Screen:
-    Fetch Blurays amount in cart
+Cart Screen:
+    Add the button for next screen (Checkout/Payment)?
 
 */
